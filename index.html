@@ -30,6 +30,9 @@
 					e.preventDefault();
 				}
 			});
+			$(window).on('resize',function(){
+				if (current_image) bestFitCurrentImage();
+			});
 		});
 		function nextImage(){
 			if(current_index + 1 >= images.length){
@@ -51,6 +54,9 @@
 			if(current_image) current_image.detach();
 			current_image = images[current_index];
 			current_image.appendTo($imageContainer);	
+			bestFitCurrentImage();
+		};
+		function bestFitCurrentImage(){
 			var wh = $(window).height();
 			var ww = $(window).width();
 			//scale the image to fit the available space
@@ -66,16 +72,10 @@
 				'left': (ww - iw) / 2 + 'px',
 				'top': (wh - ih) /2 + 'px'
 			});
-		};
+		}
 	</script>
 	<style>
 		body { margin:0; padding:0; }
-		.imageContainer {
-			width:100%;
-		}
-		.imageContainer > img {
-			max-width:100%;
-		}
 	</style>
 </head>
 <body>
