@@ -1,0 +1,13 @@
+An image browsing library that can be shaped for multiple applications.
+Under all circumstances, flexibility and configurability (perhaps with some smart defaults) will be favored.
+The problem domain should be closely examined and divided among several components.
+All screen sizes must be supported.  The viewer(s) must have a concept of an image group (typical circular browse) but must also have an option
+for a solo view.  I will also need a way to indicate how the viewer is to get more grouped images that involves AJAX or some other remote linkage,
+as loading all grouped photos on the same page every time is simply not an option (I need photo groups to be browsed from a news feed, for instance). I will also need to be able to load arbitrary content alongside an image.. I'm thinking comments and links, facebook style.
+
+	All screen sizes
+	Configurable UI
+	Strong API
+	Browsing groups, both local and remote
+	Slideshow
+

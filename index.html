@@ -1,0 +1,100 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Gallery</title>
+	<script type="text/javascript" src="../core/jQuery.js"></script>	
+	<script type="text/javascript" src="../core/JavaScript-load-image.js"></script>	
+	<script>
+		var images = [];
+		var current_index = 0;
+		var current_image;
+		var $imageContainer = $("<div></div>").addClass('imageContainer');
+		$(function(){
+			//initialize the image pool from the DOM.  hide all original images
+			$imageContainer.appendTo($(document.body));
+			$('img').each(function(){
+				var $i = $(this);
+				var image = new Image();
+				image.src = $i.attr('src');
+				images.push($(image));
+				$i.remove();
+			});
+			loadImageFromIndex();
+			$(document).on('keydown',function(e){
+				if(e.which == 39){
+					nextImage();
+					e.preventDefault();
+				} else if(e.which == 37){
+					prevImage();
+					e.preventDefault();
+				}
+			});
+		});
+		function nextImage(){
+			if(current_index + 1 >= images.length){
+				current_index = 0;
+			} else {
+				current_index++;
+			}
+			loadImageFromIndex();
+		}
+		function prevImage(){
+			if(current_index - 1 <= 0){
+				current_index = images.length - 1;
+			} else {
+				current_index--;
+			}
+			loadImageFromIndex();
+		}
+		function loadImageFromIndex(){
+			if(current_image) current_image.detach();
+			current_image = images[current_index];
+			current_image.appendTo($imageContainer);	
+			var wh = $(window).height();
+			var ww = $(window).width();
+			//scale the image to fit the available space
+			current_image.css({
+				'max-width': ww + 'px',
+				'max-height': wh + 'px'
+			});
+			//center the image horizontally and/or vertically
+			var ih = current_image.height()
+			var iw = current_image.width()
+			current_image.css({
+				'position': 'absolute',
+				'left': (ww - iw) / 2 + 'px',
+				'top': (wh - ih) /2 + 'px'
+			});
+		};
+	</script>
+	<style>
+		body { margin:0; padding:0; }
+		.imageContainer {
+			width:100%;
+		}
+		.imageContainer > img {
+			max-width:100%;
+		}
+	</style>
+</head>
+<body>
+	<img src="img/1.jpg" alt="" />
+	<img src="img/2.jpg" alt="" />
+	<img src="img/3.jpg" alt="" />
+	<img src="img/4.jpg" alt="" />
+	<img src="img/5.jpg" alt="" />
+	<img src="img/6.jpg" alt="" />
+	<img src="img/7.jpg" alt="" />
+	<img src="img/8.jpg" alt="" />
+	<img src="img/9.jpg" alt="" />
+	<img src="img/10.jpg" alt="" />
+	<img src="img/11.jpg" alt="" />
+	<img src="img/12.jpg" alt="" />
+	<img src="img/13.jpg" alt="" />
+	<img src="img/14.jpg" alt="" />
+	<img src="img/15.jpg" alt="" />
+	<img src="img/16.jpg" alt="" />
+	<img src="img/17.jpg" alt="" />
+</body>
+</html>
