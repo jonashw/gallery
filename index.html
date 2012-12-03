@@ -6,10 +6,6 @@
 	<script type="text/javascript" src="../core/jQuery.js"></script>	
 	<script type="text/javascript" src="../core/JavaScript-load-image.js"></script>	
 	<script>
-		var images = [];
-		var current_index = 0;
-		var current_image;
-		var $imageContainer = $("<div></div>").addClass('imageContainer');
 		$(function(){
 			//initialize the image pool from the DOM.  hide all original images
 			$imageContainer.appendTo($(document.body));
@@ -20,7 +16,7 @@
 				images.push($(image));
 				$i.remove();
 			});
-			loadImageFromIndex();
+			//keyboard navigation listener (arrow keys)
 			$(document).on('keydown',function(e){
 				if(e.which == 39){
 					nextImage();
@@ -30,10 +26,18 @@
 					e.preventDefault();
 				}
 			});
+			//window resize listener -> image best-fit
 			$(window).on('resize',function(){
 				if (current_image) bestFitCurrentImage();
 			});
 		});
+		//core data
+		var images = [];
+		var current_index = 0;
+		var current_image;
+		var is_zoomed = false;
+		var $imageContainer = $("<div></div>").addClass('imageContainer');
+		//core methods
 		function nextImage(){
 			if(current_index + 1 >= images.length){
 				current_index = 0;
@@ -55,7 +59,16 @@
 			current_image = images[current_index];
 			current_image.appendTo($imageContainer);	
 			bestFitCurrentImage();
-		};
+			$imageContainer.trigger('imageLoaded',current_image);
+		}
+		function open(){
+			loadImageFromIndex();
+			$imageContainer.trigger('viewerOpened');
+		}
+		function close(){
+			if(current_image) current_image.detach();
+			$imageContainer.trigger('viewerClosed');
+		}
 		function bestFitCurrentImage(){
 			var wh = $(window).height();
 			var ww = $(window).width();
@@ -73,12 +86,91 @@
 				'top': (wh - ih) /2 + 'px'
 			});
 		}
+		function zoomCurrentImage(){
+			if(!current_image) return false;
+			current_image.removeAttr('style');
+			is_zoomed = true;
+		}
+		function unzoomCurrentImage(){
+			if(!current_image) return false;
+			bestFitCurrentImage();
+			is_zoomed = false;
+		}
+		//example UI stuff (should remain separate from core)
+		$(function(){
+			var openBtn = $("#open");
+			var closeBtn = $("#close");
+			var prevBtn = $("#prev");
+			var nextBtn = $("#next");
+			var zoomBtn = $("#zoom");
+			var unzoomBtn = $("#unzoom");
+			var hud = $("#hud").hide();
+			openBtn.on('click',function(){
+				open();
+				openBtn.attr('disabled','true');
+				closeBtn.removeAttr('disabled');
+				prevBtn.removeAttr('disabled');
+				nextBtn.removeAttr('disabled');
+				hud.show();
+			}).removeAttr('disabled');
+			closeBtn.on('click',function(){
+				close();
+				closeBtn.attr('disabled','true');
+				openBtn.removeAttr('disabled');
+				prevBtn.attr('disabled','true');
+				nextBtn.attr('disabled','true');
+				unzoomBtn.attr('disabled','true');
+				zoomBtn.attr('disabled','true');
+				hud.hide();
+			}).attr('disabled','true');
+			prevBtn.on('click',function(){
+				prevImage();
+			}).attr('disabled','true');
+			nextBtn.on('click',function(){
+				nextImage();
+			}).attr('disabled','true');
+			zoomBtn.on('click',function(){
+				zoomCurrentImage();
+				zoomBtn.attr('disabled','true');
+				unzoomBtn.removeAttr('disabled');
+			}).attr('disabled','true');
+			unzoomBtn.on('click',function(){
+				unzoomCurrentImage();
+				unzoomBtn.attr('disabled','true');
+				zoomBtn.removeAttr('disabled');
+			}).attr('disabled','true');
+			$imageContainer
+				.on('imageLoaded',function(e,image){
+					console.log(image);
+					hud.text((current_index + 1) + ' of ' + images.length);
+					zoomBtn.removeAttr('disabled');
+					unzoomBtn.attr('disabled','true');
+				})
+				.on('click','img',function(e){
+					if(is_zoomed){
+						unzoomCurrentImage();	
+					} else {
+						zoomCurrentImage();
+					}
+				})
+			;
+		});
 	</script>
 	<style>
 		body { margin:0; padding:0; }
 	</style>
 </head>
 <body>
+	<button id="open">Open viewer</button>
+	<br>
+	<button id="close">Close viewer</button>
+	<br>
+	<button id="prev">prev</button>
+	<button id="next">next</button>
+	<br>
+	<button id="zoom">+</button>
+	<button id="unzoom">-</button>
+	<div id="hud"></div>
 	<img src="img/1.jpg" alt="" />
 	<img src="img/2.jpg" alt="" />
 	<img src="img/3.jpg" alt="" />
