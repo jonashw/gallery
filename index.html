@@ -16,42 +16,31 @@
 				images.push($(image));
 				$i.remove();
 			});
-			//keyboard navigation listener (arrow keys)
-			$(document).on('keydown',function(e){
-				if(e.which == 39){
-					nextImage();
-					e.preventDefault();
-				} else if(e.which == 37){
-					prevImage();
-					e.preventDefault();
-				}
-			});
 			//window resize listener -> image best-fit
 			$(window).on('resize',function(){
 				if (current_image) bestFitCurrentImage();
 			});
 		});
+		//settings (later moved to a public constructor)
+		var wrap_mode = true;
 		//core data
 		var images = [];
 		var current_index = 0;
 		var current_image;
 		var is_zoomed = false;
+		var is_open = false;
 		var $imageContainer = $("<div></div>").addClass('imageContainer');
 		//core methods
 		function nextImage(){
-			if(current_index + 1 >= images.length){
-				current_index = 0;
-			} else {
-				current_index++;
-			}
+			if (!canNext()) return false;
+			current_index++;
+			if(current_index >= images.length) current_index = 0;
 			loadImageFromIndex();
 		}
 		function prevImage(){
-			if(current_index - 1 <= 0){
-				current_index = images.length - 1;
-			} else {
-				current_index--;
-			}
+			if (!canPrev()) return false;
+			current_index--;
+			if(current_index < 0) current_index = images.length - 1;
 			loadImageFromIndex();
 		}
 		function loadImageFromIndex(){
@@ -64,10 +53,12 @@
 		function open(){
 			loadImageFromIndex();
 			$imageContainer.trigger('viewerOpened');
+			is_open = true;
 		}
 		function close(){
 			if(current_image) current_image.detach();
 			$imageContainer.trigger('viewerClosed');
+			is_open = false;
 		}
 		function bestFitCurrentImage(){
 			var wh = $(window).height();
@@ -85,6 +76,7 @@
 				'left': (ww - iw) / 2 + 'px',
 				'top': (wh - ih) /2 + 'px'
 			});
+			is_zoomed = false;
 		}
 		function zoomCurrentImage(){
 			if(!current_image) return false;
@@ -96,6 +88,39 @@
 			bestFitCurrentImage();
 			is_zoomed = false;
 		}
+		function setWrapAround(bool){
+			wrap_mode = bool;
+		}
+		function canWrap(){
+			return wrap_mode;
+		}
+		function isOpen(){
+			return is_open;
+		}
+		function canZoom(){
+			return !is_zoomed && is_open;
+		}
+		function canUnzoom(){
+			return is_zoomed && is_open;
+		}
+		function canNext(){
+			return is_open && (canWrap() || hasNext()); 
+		}
+		function hasNext(){
+			return current_index + 1 < images.length;
+		}
+		function canPrev(){
+			return is_open && (canWrap() || hasPrev()); 
+		}
+		function hasPrev(){
+			return (current_index - 1) >= 0 && images.length;
+		}
+		function canOpen(){
+			return !is_open;
+		}
+		function canClose(){
+			return is_open;
+		}
 		//example UI stuff (should remain separate from core)
 		$(function(){
 			var openBtn = $("#open");
@@ -105,55 +130,126 @@
 			var zoomBtn = $("#zoom");
 			var unzoomBtn = $("#unzoom");
 			var hud = $("#hud").hide();
+			var wrapCheck = $("#wrap");
+			updateUIState();
 			openBtn.on('click',function(){
+				if(!canOpen()) return false;
 				open();
-				openBtn.attr('disabled','true');
-				closeBtn.removeAttr('disabled');
-				prevBtn.removeAttr('disabled');
-				nextBtn.removeAttr('disabled');
-				hud.show();
-			}).removeAttr('disabled');
+				updateUIState();
+			});
 			closeBtn.on('click',function(){
+				if(!canClose()) return false;
 				close();
-				closeBtn.attr('disabled','true');
-				openBtn.removeAttr('disabled');
-				prevBtn.attr('disabled','true');
-				nextBtn.attr('disabled','true');
-				unzoomBtn.attr('disabled','true');
-				zoomBtn.attr('disabled','true');
-				hud.hide();
-			}).attr('disabled','true');
+				updateUIState();
+			});
 			prevBtn.on('click',function(){
+				if(!canPrev()) return false;
 				prevImage();
-			}).attr('disabled','true');
+				updateUIState();
+			});
 			nextBtn.on('click',function(){
+				if(!canNext()) return false;
 				nextImage();
-			}).attr('disabled','true');
+				updateUIState();
+			});
 			zoomBtn.on('click',function(){
+				if(!canZoom()) return false;
 				zoomCurrentImage();
-				zoomBtn.attr('disabled','true');
-				unzoomBtn.removeAttr('disabled');
-			}).attr('disabled','true');
+				updateUIState();
+			});
 			unzoomBtn.on('click',function(){
+				if(!canUnzoom()) return false;
 				unzoomCurrentImage();
-				unzoomBtn.attr('disabled','true');
-				zoomBtn.removeAttr('disabled');
-			}).attr('disabled','true');
+				updateUIState();
+			});
+			wrapCheck.on('change',function(){
+				setWrapAround($(this).is(':checked'));
+				updateUIState();
+			});
 			$imageContainer
 				.on('imageLoaded',function(e,image){
 					console.log(image);
 					hud.text((current_index + 1) + ' of ' + images.length);
-					zoomBtn.removeAttr('disabled');
-					unzoomBtn.attr('disabled','true');
+					updateUIState();
 				})
 				.on('click','img',function(e){
 					if(is_zoomed){
+						if(!canUnzoom()) return false;
 						unzoomCurrentImage();	
+						updateUIState();
 					} else {
+						if(!canZoom()) return false;
 						zoomCurrentImage();
+						updateUIState();
 					}
 				})
 			;
+			//keyboard navigation listener (arrow keys)
+			$(document).on('keydown',function(e){
+				console.log(e.which);
+				switch(e.which){
+					case 39://right
+						if(!canNext()) return;
+						nextImage();
+						e.preventDefault();
+						updateUIState();
+						break;
+					case 37: //left
+						if(!canPrev()) return;
+						prevImage();
+						e.preventDefault();
+						updateUIState();
+						break;
+					case 38: //up	
+						if(!canZoom()) return;
+						zoomCurrentImage();	
+						updateUIState();
+						break;
+					case 40: //down
+						if(!canUnzoom()) return;
+						unzoomCurrentImage();	
+						updateUIState();
+						break;
+					case 27: //esc
+						if(!canClose()) return;
+						close();
+						updateUIState();
+						break;
+				}
+
+			})
+			//core UI functions
+			function setEnabledTo($el,b){
+				if(b){
+					$el.removeAttr('disabled');
+				} else {
+					$el.attr('disabled','true');
+				}
+			}
+			function setShownTo($el,b){
+				if(b){
+					$el.show();
+				} else {
+					$el.hide();
+				}
+			}
+			function setChecked($el,b){
+				if(b){
+					$el.prop('checked',true);
+				} else {
+					$el.prop('checked',false);
+				}
+			}
+			function updateUIState(){
+				setEnabledTo(closeBtn, canClose());
+				setEnabledTo(openBtn, canOpen());
+				setEnabledTo(zoomBtn, canZoom());
+				setEnabledTo(unzoomBtn, canUnzoom());
+				setEnabledTo(prevBtn, canPrev());
+				setEnabledTo(nextBtn, canNext());
+				setShownTo(hud, isOpen());
+				setChecked(wrapCheck, canWrap());
+			}
 		});
 	</script>
 	<style>
@@ -170,6 +266,9 @@
 	<br>
 	<button id="zoom">+</button>
 	<button id="unzoom">-</button>
+	<br>
+	<label><input type="checkbox" id="wrap"> Wrap mode</label>
+	<br>
 	<div id="hud"></div>
 	<img src="img/1.jpg" alt="" />
 	<img src="img/2.jpg" alt="" />
