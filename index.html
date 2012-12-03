@@ -23,11 +23,14 @@
 		});
 		//settings (later moved to a public constructor)
 		var wrap_mode = true;
+		var slide_delay = 1000;
 		//core data
 		var images = [];
 		var current_index = 0;
 		var current_image;
 		var is_zoomed = false;
+		var is_sliding = false;
+		var slideTimeout;
 		var is_open = false;
 		var $imageContainer = $("<div></div>").addClass('imageContainer');
 		//core methods
@@ -59,6 +62,29 @@
 			if(current_image) current_image.detach();
 			$imageContainer.trigger('viewerClosed');
 			is_open = false;
+		}
+		function startSlideShow(){
+			if(!canStartShow()) return false;
+			console.log('show start!');
+			is_sliding = true;
+			slideTimeout = setInterval(function(){
+				slideNext();
+			}, slide_delay);
+			$imageContainer.trigger('slideShowStart');
+		}
+		function slideNext(){
+			if(!canSlide() || !canNext()) stopSlideShow(); 
+			nextImage();
+		}
+		function canSlide(){
+			return is_open && is_sliding;
+		}
+		function stopSlideShow(){
+			if(!canStopShow()) return false;
+			console.log('show stop!');
+			is_sliding = false;
+			clearTimeout(slideTimeout);
+			$imageContainer.trigger('slideShowStop');
 		}
 		function bestFitCurrentImage(){
 			var wh = $(window).height();
@@ -100,6 +126,12 @@
 		function canZoom(){
 			return !is_zoomed && is_open;
 		}
+		function canStartShow(){
+			return canNext() && !is_sliding;
+		}
+		function canStopShow(){
+			return is_open && is_sliding;
+		}
 		function canUnzoom(){
 			return is_zoomed && is_open;
 		}
@@ -131,6 +163,8 @@
 			var unzoomBtn = $("#unzoom");
 			var hud = $("#hud").hide();
 			var wrapCheck = $("#wrap");
+			var start = $("#slideshow-start");
+			var stop = $("#slideshow-stop");
 			updateUIState();
 			openBtn.on('click',function(){
 				if(!canOpen()) return false;
@@ -166,10 +200,22 @@
 				setWrapAround($(this).is(':checked'));
 				updateUIState();
 			});
+			start.on('click',function(){
+				if(!canStartShow()) return false;
+				startSlideShow();
+				updateUIState();
+			});
+			stop.on('click',function(){
+				if(!canStopShow()) return false;
+				stopSlideShow();
+				updateUIState();
+			});
 			$imageContainer
 				.on('imageLoaded',function(e,image){
 					console.log(image);
 					hud.text((current_index + 1) + ' of ' + images.length);
+				})
+				.on('imageLoaded slideShowStart slideShowStop',function(){
 					updateUIState();
 				})
 				.on('click','img',function(e){
@@ -247,6 +293,8 @@
 				setEnabledTo(unzoomBtn, canUnzoom());
 				setEnabledTo(prevBtn, canPrev());
 				setEnabledTo(nextBtn, canNext());
+				setEnabledTo(start, canStartShow());
+				setEnabledTo(stop, canStopShow());
 				setShownTo(hud, isOpen());
 				setChecked(wrapCheck, canWrap());
 			}
@@ -270,6 +318,11 @@
 	<label><input type="checkbox" id="wrap"> Wrap mode</label>
 	<br>
 	<div id="hud"></div>
+	<br>
+	Slideshow
+	<br>
+	<button id="slideshow-start">Start</button>
+	<button id="slideshow-stop">Stop</button>
 	<img src="img/1.jpg" alt="" />
 	<img src="img/2.jpg" alt="" />
 	<img src="img/3.jpg" alt="" />
