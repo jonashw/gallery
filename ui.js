@@ -75,6 +75,9 @@ $(function(){
 			case 27: //esc
 				viewer.close();
 				break;
+			case 13: //enter
+				viewer.open();
+				break;
 		}
 	})
 	//core UI functions

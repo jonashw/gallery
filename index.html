@@ -41,13 +41,39 @@
 	<script type="text/javascript" src="ui.js"></script>
 	<style>
 		body { margin:0; padding:0; }
+		#left {
+			width:20%;
+			height:100%;
+			vertical-align:top;
+		}
+		#right {
+			width:80%;
+			vertical-align:top;
+		}
+		#controls {
+			line-height:1.5em;
+			padding:1em;
+			margin:1em;
+			text-align:center;
+			background:rgba(200,200,100,0.3);
+			border-radius:4px;
+			box-shadow:1px 1px #eee, inset 1px 1px #fff;
+			border:1px solid #ddd;
+		}
+		@media(max-width:995px){
+			#left {display:none;}
+			#right {width:100%;}
+		}
+		#imageContainer {
+			background:black;
+		}
 	</style>
 </head>
 <body>
 	<table cellspacing="0" cellpadding="0" style="width:100%; height:100%;">
 		<tr>
-			<td style="width:20%; height:100%;vertical-align:top;">
-				<div style="line-height:1.5em; padding:1em; margin:1em; text-align:center;  background:rgba(200,200,100,0.3); border-radius:4px; box-shadow:1px 1px #eee,inset 1px 1px #fff; border:1px solid #ddd">
+			<td id="left">
+				<div id="controls">
 					<button id="open">Open viewer</button>
 					<br>
 					<button id="close">Close viewer</button>
@@ -72,7 +98,7 @@
 					<button id="slideshow-stop">Stop</button>
 				</div>
 			</td>
-			<td style="width:80%; vertical-align:top;">
+			<td id="right">
 				<div id="imageContainer"></div>
 			</td>
 		</tr>

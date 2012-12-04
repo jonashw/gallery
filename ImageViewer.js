@@ -13,7 +13,7 @@ function ImageViewer(container,imageProvider){
 	this.optimizeContainerSize();	
 	var self = this;
 	$(window).on('resize',function(){
-		this.optimizeContainerSize();	
+		self.optimizeContainerSize();	
 		if(self.is_open) self.sizeToFit();
 	});
 	this.container.on('wrapChanged zoom unzoom slideShowStop slideShowStart open close imageLoaded', function(){
@@ -53,12 +53,14 @@ ImageViewer.prototype.viewImage = function(image){
 	this.container.trigger('imageLoaded',image);
 }
 ImageViewer.prototype.open = function(){
+	if(!this.canOpen()) return false;
 	var image = this.imageProvider.getFirst();
 	this.viewImage(image);
 	this.is_open = true;
 	this.container.trigger('open');
 }
 ImageViewer.prototype.close = function(){
+	if(!this.canClose()) return false;
 	if(this.image) this.image.detach();
 	this.is_open = false;
 	this.container.trigger('close');
@@ -96,17 +98,18 @@ ImageViewer.prototype.sizeToFit = function(){
 	var cw = this.containerWidth;
 	//scale the image to fit the available space
 	this.image.css({
+		'position': 'relative',
 		'max-width': cw + 'px',
 		'max-height': ch + 'px'
 	});
 	//center the image horizontally and vertically
 	var iw = this.image.width();
 	var ih = this.image.height();
-	console.log('width',cw,iw);
+	//console.log('width',cw,iw);
 	this.image.css({
 		'position': 'relative',
 		'left': (cw - iw) / 2 + 'px',
-		'top': (ch - ih) /2 + 'px'
+		'top': (ch - ih) / 2 + 'px'
 	});
 	this.is_zoomed = false;
 }
