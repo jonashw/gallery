@@ -1,0 +1,257 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Gallery</title>
+	<script type="text/javascript" src="../core/jQuery.js"></script>	
+	<script type="text/javascript" src="ImageViewer.js"></script>
+	<script type="text/javascript" src="ImageProvider.js"></script>
+	<script>
+		var domImageProvider;
+		var viewer;
+		var $imageContainer;
+		var lazyImageProvider = new LazyImageProvider([
+			"img/1.jpg",
+			"img/2.jpg",
+			"img/3.jpg",
+			"img/4.jpg",
+			"img/5.jpg",
+			"img/6.jpg",
+			"img/7.jpg",
+			"img/8.jpg",
+			"img/9.jpg",
+			"img/10.jpg",
+			"img/11.jpg",
+			"img/12.jpg",
+			"img/13.jpg",
+			"img/14.jpg",
+			"img/15.jpg",
+			"img/16.jpg",
+			"img/17.jpg"
+		]);
+		//example UI stuff (should remain separate from core)
+		$(function(){
+			//initialize
+			$imageContainer = $('#imageContainer');
+			domImageProvider = new DOMImageProvider($('img'));
+			viewer = new ImageViewer($imageContainer,lazyImageProvider);
+			viewer.open();
+			//keyboard navigation listener (arrow keys)
+			$(document).on('keydown',function(e){
+				switch(e.which){
+					case 39://right
+						viewer.nextImage();
+						e.preventDefault();
+						break;
+					case 37: //left
+						viewer.prevImage();
+						e.preventDefault();
+						break;
+					case 38: //up	
+						viewer.zoom();	
+						break;
+					case 40: //down
+						viewer.unzoom();
+						break;
+					case 27: //esc
+						viewer.close();
+						break;
+					case 13: //enter
+						viewer.open();
+						break;
+					case 32: //space
+						state.onClick();		
+						break;
+				}
+			});
+			var prev = $("#prev").on('click',function(){viewer.prevImage()});
+			var next = $("#next").on('click',function(){viewer.nextImage()});
+			var zoom = $("#zoom").on('click',function(){viewer.zoom()});
+			var unzoom = $("#unzoom").on('click',function(){viewer.unzoom()});
+			var slideshowStart = $("#slideshow-start").on('click',function(){viewer.startSlideShow()});
+			var slideshowStop = $("#slideshow-stop").on('click',function(){viewer.stopSlideShow()});
+			var close = $("#close").on('click',function(){viewer.close()});
+			var open = $("#open").on('click',function(){viewer.open()});
+			var comments = $("#comments").on('click',function(){setState(commentsState);});
+			var backToImage = $("#backToImage").on('click',function(){setState(auxState);});
+			var commentsContainer = $("#commentscontainer");
+			var aux = $("#aux");
+			var bottombar = $("#bottombar");
+			var topbar = $("#topbar");
+			function positionPrevNextButtons(){
+				var wh = $(window).height();
+				var bh = prev.height();
+				var y = (wh - bh) / 2;
+				prev.css('top', y + 'px');
+				next.css('top', y + 'px');
+			}
+			positionPrevNextButtons();
+			$(window).on('resize',function(){
+				positionPrevNextButtons();
+			});
+			function setEnabledTo($el,b){
+				if(b){
+					$el.removeAttr('disabled');
+				} else {
+					$el.attr('disabled','true');
+				}
+			}
+			function setShownTo($el,b,fade){
+				if(b){
+					fade ? $el.fadeIn() : $el.show();
+				} else {
+					fade ? $el.fadeOut() : $el.hide();
+				}
+			}
+			function updateUIState(){
+				setShownTo(close, viewer.canClose());
+				setShownTo(open, viewer.canOpen());
+				setShownTo(slideshowStart, viewer.canStartSlideShow());
+				setShownTo(slideshowStop, viewer.canStopSlideShow());
+				setEnabledTo(zoom, viewer.canZoom());
+				setEnabledTo(unzoom, viewer.canUnzoom());
+				setShownTo(prev, viewer.canPrev() && !viewer.isZoomed(),true);
+				setShownTo(next, viewer.canNext() && !viewer.isZoomed(),true);
+				setShownTo(bottombar, !viewer.isSlideShowRunning() && viewer.isOpen(),true);
+				setShownTo(topbar, !viewer.isZoomed(),true);
+			}
+			updateUIState();
+			$imageContainer.on('stateChange',function(){
+				updateUIState();
+			});
+			//ui state
+			var state;
+			function setState(s){
+				state = s;
+				s.update();
+			}
+			var normalState = {
+				onClick: function(){
+					setState(auxState);
+				},
+				update: function(){
+					aux.fadeOut();
+					commentsContainer.hide();
+					$imageContainer.show();
+				}
+			};
+			var auxState = {
+				onClick: function(){
+					setState(normalState);
+				},
+				update: function(){
+					$imageContainer.show();
+					commentsContainer.hide();
+					aux.fadeIn();
+				}
+			};
+			var commentsState = {
+				onClick: function(){
+					return;
+				},
+				update: function(){
+					aux.fadeOut();
+					$imageContainer.fadeOut();
+					commentsContainer.fadeIn();
+				}
+			};
+			setState(normalState);
+			$imageContainer.on('click','img',function(){
+				state.onClick();
+			});
+		});
+	</script>
+	<style>
+		body { margin:0; padding:0; background:black; overflow:hidden;}
+		.bar {
+			background:rgba(0,0,0,.75);
+			position:fixed;
+			height:2em;
+			line-height:2em;
+			padding: 0 1em;
+			z-index:100;
+			color:white;
+			text-shadow: 1px 1px black;
+			left:0;
+			right:0;
+		}
+		.bar-bottom{
+			bottom:0;
+			border-top:2px solid black;
+		}
+		.bar-top {
+			top:0;
+			border-bottom:2px solid black;
+		}
+		.navarrow {
+			position:fixed;
+			display:block;
+			cursor:pointer;
+		}
+		.navarrow:before {
+			font-size:700%;
+			font-weight:bold;
+			color:rgba(255,255,255,0.8);
+			font-family: "Arial";
+			text-shadow:0 0 5px black;
+		}
+		.navarrow:active:before {
+			color:white;
+			text-shadow:0 0 10px black, 0 0 15px white;
+		}
+		.navarrow-left {
+			left:5px;
+		}
+		.navarrow-left:before {
+			content:"\2039";
+		}
+		.navarrow-right {
+			right:5px;
+		}
+		.navarrow-right:before {
+			content:"\203A";
+		}
+	</style>
+</head>
+<body>
+	<div id="commentscontainer" style="display:none; background:white;">
+		<button id="backToImage">Back</button>
+			<div>Test comment</div>
+			<hr />
+			<div>Test comment</div>
+			<hr />
+			<div>Test comment</div>
+			<hr />
+			<div>Test comment</div>
+			<hr />
+			<div>Test comment</div>
+			<hr />
+			<div>Test comment</div>
+			<hr />
+			<div>Test comment</div>
+			<hr />
+			<div>Test comment</div>
+			<hr />
+			<div>Test comment</div>
+			<hr />
+			<div>Test comment</div>
+			<hr />
+	</div>
+	<div id="imageContainer"></div>
+	<div id="aux" style="display:none;">
+		<div id="prev" class="navarrow navarrow-left"></div>
+		<div id="next" class="navarrow navarrow-right"></div>
+		<div id="topbar" class="bar bar-top">
+			<button id="slideshow-start">Start Slideshow</button>
+			<button id="slideshow-stop">Stop Slideshow</button>
+			<button id="close" style="float:right;">X Close</button>
+			<button id="open" style="float:right;">Open</button>
+		</div>
+		<div id="bottombar" class="bar bar-bottom">
+			<button id="zoom">+ Zoom</button>
+			<button id="unzoom">- Zoom</button>
+			<button id="comments" style="float:right;">Comments</button>
+		</div>
+	</div><!-- /info -->
+</body>
+</html>
