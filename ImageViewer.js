@@ -50,6 +50,7 @@ ImageViewer.prototype.viewImage = function(image){
 	image.appendTo(this.container);	
 	this.image = image;
 	this.sizeToFit();
+	if(this.canUnzoom()) this.unzoom();
 	this.container.trigger('imageLoaded',image);
 }
 ImageViewer.prototype.open = function(){
@@ -76,8 +77,10 @@ ImageViewer.prototype.startSlideShow = function(){
 	this.container.trigger('slideShowStart');
 }
 ImageViewer.prototype.slideNext = function(){
-	if(!this.canSlide() || !this.canNext()) this.stopSlideShow(); 
-	this.nextImage();
+	if(!this.canSlide()) this.stopSlideShow(); 
+	var image = this.imageProvider.getNext();
+	this.viewImage(image);
+	this.container.trigger('slide');
 }
 ImageViewer.prototype.stopSlideShow = function(){
 	if(!this.canStopSlideShow()) return false;
@@ -111,18 +114,17 @@ ImageViewer.prototype.sizeToFit = function(){
 		'left': (cw - iw) / 2 + 'px',
 		'top': (ch - ih) / 2 + 'px'
 	});
-	this.is_zoomed = false;
 }
 ImageViewer.prototype.zoom = function(){
 	if(!this.canZoom()) return false;
-	this.image.removeAttr('style');
-	//this.center();
-	this.image.css({
-		'position':'absolute',
-		'top':0,
-		'left':0
-	});
-	this.container.addClass('zoomed');
+	this.image
+		.removeAttr('style')
+		.css({
+			'position':'absolute',
+			'top':0,
+			'left':0
+		})
+	;
 	this.is_zoomed = true;
 	this.container.trigger('zoom',this.image);
 }
@@ -140,14 +142,14 @@ ImageViewer.prototype.setWrapAround = function(bool){
 //state queries
 ImageViewer.prototype.canWrap 			= function(){ return this.wrap_mode; }
 ImageViewer.prototype.canOpen 			= function(){ return !this.is_open; }
-ImageViewer.prototype.canClose 			= function(){ return this.is_open; }
+ImageViewer.prototype.canClose 			= function(){ return this.is_open && !this.is_sliding; }
 ImageViewer.prototype.isOpen 			= function(){ return this.is_open; }
-ImageViewer.prototype.canZoom 			= function(){ return this.is_open && !this.is_zoomed; }
+ImageViewer.prototype.canZoom 			= function(){ return this.is_open && !this.is_zoomed && !this.is_sliding; }
 ImageViewer.prototype.canStartSlideShow = function(){ return this.canNext() && !this.is_sliding; }
 ImageViewer.prototype.canStopSlideShow 	= function(){ return this.is_open && this.is_sliding; }
-ImageViewer.prototype.canSlide 			= function(){ return this.is_open && this.is_sliding; }
-ImageViewer.prototype.canUnzoom 		= function(){ return this.is_open && this.is_zoomed; }
-ImageViewer.prototype.canPrev 			= function(){ return this.is_open && (this.canWrap() || this.hasPrev()); }
-ImageViewer.prototype.canNext 			= function(){ return this.is_open && (this.canWrap() || this.hasNext()); }
-ImageViewer.prototype.hasPrev 			= function(){ return this.imageProvider.hasPrev(); }
-ImageViewer.prototype.hasNext 			= function(){ return this.imageProvider.hasNext(); }
+ImageViewer.prototype.canSlide 			= function(){ return this.is_open && this.is_sliding && this.hasNext(); }
+ImageViewer.prototype.canUnzoom 		= function(){ return this.is_open && this.is_zoomed && !this.is_sliding; }
+ImageViewer.prototype.canPrev 			= function(){ return this.is_open && this.hasPrev() && !this.is_sliding; }
+ImageViewer.prototype.canNext 			= function(){ return this.is_open && this.hasNext() && !this.is_sliding; }
+ImageViewer.prototype.hasPrev 			= function(){ return this.imageProvider.hasPrev() || this.canWrap(); }
+ImageViewer.prototype.hasNext 			= function(){ return this.imageProvider.hasNext() || this.canWrap(); }

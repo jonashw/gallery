@@ -1,4 +1,5 @@
 $(function(){
+	var controls = $("#controls");
 	var openBtn = $("#open");
 	var closeBtn = $("#close");
 	var prevBtn = $("#prev");
@@ -52,6 +53,12 @@ $(function(){
 		})
 		.on('click','img',function(e){
 			viewer.canZoom() ? viewer.zoom() : viewer.unzoom();
+		})
+		.on('zoom',function(){
+			controls.hide();
+		})
+		.on('unzoom',function(){
+			controls.show();
 		})
 	;
 	//keyboard navigation listener (arrow keys)
