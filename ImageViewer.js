@@ -5,7 +5,7 @@ function ImageViewer(container,imageProvider){
 	//core data
 	this.is_zoomed = false;
 	this.is_sliding = false;
-	this.slideTimeout = null;
+	this.slideInterval = null;
 	this.is_open = false;
 	this.container = container;
 	this.imageProvider = imageProvider;
@@ -71,13 +71,16 @@ ImageViewer.prototype.startSlideShow = function(){
 	console.log('show start!');
 	this.is_sliding = true;
 	var self = this;
-	this.slideTimeout = setInterval(function(){
+	this.slideInterval = setInterval(function(){
 		self.slideNext();
 	}, this.slide_delay);
 	this.container.trigger('slideShowStart');
 }
 ImageViewer.prototype.slideNext = function(){
-	if(!this.canSlide()) this.stopSlideShow(); 
+	if(!this.canSlide()){
+		this.stopSlideShow(); 
+		return false;
+	}
 	var image = this.imageProvider.getNext();
 	this.viewImage(image);
 	this.container.trigger('slide');
@@ -86,7 +89,7 @@ ImageViewer.prototype.stopSlideShow = function(){
 	if(!this.canStopSlideShow()) return false;
 	console.log('show stop!');
 	this.is_sliding = false;
-	clearTimeout(this.slideTimeout);
+	clearInterval(this.slideInterval);
 	this.container.trigger('slideShowStop');
 }
 ImageViewer.prototype.sizeToFit = function(){
