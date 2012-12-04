@@ -1,57 +1,50 @@
-function ImageViewer(){
+function ImageViewer(container,imageProvider){
+	this.image;
 	this.wrap_mode = true;
 	this.slide_delay = 1000;
 	//core data
-	this.images = [];
-	this.current_index = 0;
-	this.current_image;
 	this.is_zoomed = false;
 	this.is_sliding = false;
 	this.slideTimeout;
 	this.is_open = false;
-	this.$imageContainer;
+	this.$imageContainer = container;
+	this.imageProvider = imageProvider;
 }
 //settings (later moved to a public constructor)
 //core methods (mutators)
-ImageViewer.prototype.setImages = function(images){
-	this.images = images;
-	this.imageProvider = new DOMImageProvider();
-	this.imageProvider.setImages(images);
-};
 ImageViewer.prototype.imageCount = function(){
-	return this.imageProvider.images.length;
+	return this.imageProvider.getImageCount();
 }
 ImageViewer.prototype.currentIndex = function(){
-	return this.imageProvider.current_index;
+	return this.imageProvider.getCurrentIndex();
 }
 ImageViewer.prototype.nextImage = function(){
 	if (!this.canNext()) return false;
-	this.imageProvider.current_index++;
-	if(this.imageProvider.current_index >= this.imageProvider.images.length) this.imageProvider.current_index = 0;
-	this.loadImageFromIndex();
-	this.$imageContainer.trigger('nextImage',this.imageProvider.current_image);
+	var image = this.imageProvider.getNext();
+	this.viewImage(image);
+	this.$imageContainer.trigger('nextImage',image);
 }
 ImageViewer.prototype.prevImage = function(){
 	if (!this.canPrev()) return false;
-	this.imageProvider.current_index--;
-	if(this.imageProvider.current_index < 0) this.imageProvider.current_index = this.images.length - 1;
-	this.loadImageFromIndex();
-	this.$imageContainer.trigger('prevImage',this.imageProvider.current_image);
+	var image = this.imageProvider.getPrev();
+	this.viewImage(image);
+	this.$imageContainer.trigger('prevImage',image);
 }
-ImageViewer.prototype.loadImageFromIndex = function(){
-	if(this.imageProvider.current_image) this.imageProvider.current_image.detach();
-	this.imageProvider.current_image = this.imageProvider.images[this.imageProvider.current_index];
-	this.imageProvider.current_image.appendTo(this.$imageContainer);	
+ImageViewer.prototype.viewImage = function(image){
+	if(this.image) this.image.detach();
+	image.appendTo(this.$imageContainer);	
+	this.image = image;
 	this.sizeToFit();
-	this.$imageContainer.trigger('imageLoaded',this.imageProvider.current_image);
+	this.$imageContainer.trigger('imageLoaded',image);
 }
 ImageViewer.prototype.open = function(){
-	this.loadImageFromIndex();
+	var image = this.imageProvider.getFirst();
+	this.viewImage(image);
 	this.is_open = true;
 	this.$imageContainer.trigger('open');
 }
 ImageViewer.prototype.close = function(){
-	if(this.imageProvider.current_image) this.imageProvider.current_image.detach();
+	if(this.image) this.image.detach();
 	this.is_open = false;
 	this.$imageContainer.trigger('close');
 }
@@ -92,14 +85,14 @@ ImageViewer.prototype.sizeToFit = function(){
 	//console.log('width',ww,cw,w);
 	//console.log('height',wh,ch,h);
 	//scale the image to fit the available space
-	this.imageProvider.current_image.css({
+	this.image.css({
 		'max-width': ww + 'px',
 		'max-height': wh + 'px'
 	});
 	//center the image horizontally and vertically
-	var ih = this.imageProvider.current_image.height()
-	var iw = this.imageProvider.current_image.width()
-	this.imageProvider.current_image.css({
+	var ih = this.image.height()
+	var iw = this.image.width()
+	this.image.css({
 		'position': 'absolute',
 		'left': (ww - iw) / 2 + 'px',
 		'top': (wh - ih) /2 + 'px'
@@ -108,58 +101,32 @@ ImageViewer.prototype.sizeToFit = function(){
 }
 ImageViewer.prototype.zoom = function(){
 	if(!this.canZoom()) return false;
-	this.imageProvider.current_image.removeAttr('style');
+	this.image.removeAttr('style');
 	this.$imageContainer.addClass('zoomed');
 	this.is_zoomed = true;
-	this.$imageContainer.trigger('zoom',current_image);
+	this.$imageContainer.trigger('zoom',this.image);
 }
 ImageViewer.prototype.unzoom = function(){
 	if(!this.canUnzoom()) return false;
 	this.sizeToFit();
 	this.is_zoomed = false;
-	this.$imageContainer.trigger('unzoom',current_image);
+	this.$imageContainer.trigger('unzoom',this.image);
 }
 ImageViewer.prototype.setWrapAround = function(bool){
 	this.wrap_mode = bool;
 	this.$imageContainer.trigger('wrapChanged');
 }
 //state queries
-ImageViewer.prototype.canSlide = function(){
-	return this.is_open && this.is_sliding;
-}
-ImageViewer.prototype.canWrap = function(){
-	return this.wrap_mode;
-}
-ImageViewer.prototype.isOpen = function(){
-	return this.is_open;
-}
-ImageViewer.prototype.canZoom = function(){
-	return !this.is_zoomed && this.is_open;
-}
-ImageViewer.prototype.canStartSlideShow = function(){
-	return this.canNext() && !this.is_sliding;
-}
-ImageViewer.prototype.canStopSlideShow = function(){
-	return this.is_open && this.is_sliding;
-}
-ImageViewer.prototype.canUnzoom = function(){
-	return this.is_zoomed && this.is_open;
-}
-ImageViewer.prototype.canNext = function(){
-	return this.is_open && (this.canWrap() || this.hasNext()); 
-}
-ImageViewer.prototype.hasNext = function(){
-	return this.imageProvider.current_index + 1 < this.imageProvider.images.length;
-}
-ImageViewer.prototype.canPrev = function(){
-	return this.is_open && (this.canWrap() || this.hasPrev()); 
-}
-ImageViewer.prototype.hasPrev = function(){
-	return (this.imageProvider.current_index - 1) >= 0 && this.imageProvider.images.length;
-}
-ImageViewer.prototype.canOpen = function(){
-	return !this.is_open;
-}
-ImageViewer.prototype.canClose = function(){
-	return this.is_open;
-}
+ImageViewer.prototype.canWrap 			= function(){ return this.wrap_mode; }
+ImageViewer.prototype.canOpen 			= function(){ return !this.is_open; }
+ImageViewer.prototype.canClose 			= function(){ return this.is_open; }
+ImageViewer.prototype.isOpen 			= function(){ return this.is_open; }
+ImageViewer.prototype.canZoom 			= function(){ return this.is_open && !this.is_zoomed; }
+ImageViewer.prototype.canStartSlideShow = function(){ return this.canNext() && !this.is_sliding; }
+ImageViewer.prototype.canStopSlideShow 	= function(){ return this.is_open && this.is_sliding; }
+ImageViewer.prototype.canSlide 			= function(){ return this.is_open && this.is_sliding; }
+ImageViewer.prototype.canUnzoom 		= function(){ return this.is_open && this.is_zoomed; }
+ImageViewer.prototype.canPrev 			= function(){ return this.is_open && (this.canWrap() || this.hasPrev()); }
+ImageViewer.prototype.canNext 			= function(){ return this.is_open && (this.canWrap() || this.hasNext()); }
+ImageViewer.prototype.hasPrev 			= function(){ return this.imageProvider.hasPrev(); }
+ImageViewer.prototype.hasNext 			= function(){ return this.imageProvider.hasNext(); }

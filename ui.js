@@ -51,7 +51,7 @@ $(function(){
 			updateUIState();
 		})
 		.on('click','img',function(e){
-			viewer.canZoom() ? viewer.zoom() : viwer.unzoom();
+			viewer.canZoom() ? viewer.zoom() : viewer.unzoom();
 		})
 	;
 	//keyboard navigation listener (arrow keys)

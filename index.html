@@ -7,23 +7,36 @@
 	<script type="text/javascript" src="viewer.js"></script>
 	<script type="text/javascript" src="ImageProvider.js"></script>
 	<script>
-		var viewer = new ImageViewer();
+		var domImageProvider;
+		var viewer;
 		var $imageContainer;
+		var lazyImageProvider = new LazyImageProvider([
+			"img/1.jpg",
+			"img/2.jpg",
+			"img/3.jpg",
+			"img/4.jpg",
+			"img/5.jpg",
+			"img/6.jpg",
+			"img/7.jpg",
+			"img/8.jpg",
+			"img/9.jpg",
+			"img/10.jpg",
+			"img/11.jpg",
+			"img/12.jpg",
+			"img/13.jpg",
+			"img/14.jpg",
+			"img/15.jpg",
+			"img/16.jpg",
+			"img/17.jpg"
+		]);
 		//example UI stuff (should remain separate from core)
 		$(function(){
 			//initialize the image pool from the DOM.  hide all original images
 			$imageContainer = $('#imageContainer');
-			viewer.$imageContainer = $imageContainer;
-			//var imageProvider = new DOMImageProvider($('img'));
-			var images = [];
-			$('img').each(function(){
-				var $i = $(this);
-				var image = new Image();
-				image.src = $i.attr('src');
-				images.push($(image));
-				$i.remove();
-			});
-			viewer.setImages(images);
+			domImageProvider = new DOMImageProvider($('img'));
+			viewer = new ImageViewer($imageContainer,lazyImageProvider);
+			//viewer = new ImageViewer($imageContainer,domImageProvider);
+
 			//window resize listener -> image best-fit
 			$(window).on('resize',function(){
 				viewer.sizeToFit();

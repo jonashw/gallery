@@ -3,12 +3,13 @@ ImageProvider.prototype.hasNext = function(){};
 ImageProvider.prototype.hasPrev = function(){};
 ImageProvider.prototype.getNext = function(){};
 ImageProvider.prototype.getPrev = function(){};
+ImageProvider.prototype.getImageCount = function(){};
+ImageProvider.prototype.getCurrentIndex = function(){return this.current_index;};
 
+//DOMImageProvider: Uses a collection of images already loaded in the DOM
 DOMImageProvider.prototype = new ImageProvider();
 function DOMImageProvider($images){
-	this.current_index = 0;
-	this.current_image;
-	/*
+	this.current_index = null;
 	var images = [];
 	$images.each(function(){
 		var $i = $(this);
@@ -17,10 +18,83 @@ function DOMImageProvider($images){
 		images.push($(image));
 		$i.detach();
 	});
-	*/
+	this.images = images;
 }
-DOMImageProvider.prototype.setImages = function(images){this.images=images;};
-DOMImageProvider.prototype.hasNext = function(){};
-DOMImageProvider.prototype.hasPrev = function(){};
-DOMImageProvider.prototype.getNext = function(){};
-DOMImageProvider.prototype.getPrev = function(){};
+DOMImageProvider.prototype.hasNext = function(){
+	return this.current_index + 1 < this.images.length;
+};
+DOMImageProvider.prototype.hasPrev = function(){
+	return (this.current_index - 1) >= 0 && this.images.length > 0;
+};
+DOMImageProvider.prototype.getFirst = function(){
+	this.current_index = 0;
+	return this.images[this.current_index];
+};
+DOMImageProvider.prototype.getNext = function(){
+	this.current_index++;
+	if(this.current_index >= this.images.length) this.current_index = 0;
+	return this.images[this.current_index];
+};
+DOMImageProvider.prototype.getPrev = function(){
+	this.current_index--;
+	if(this.current_index < 0) this.current_index = this.images.length - 1;
+	return this.images[this.current_index];
+};
+DOMImageProvider.prototype.getImageCount = function(){
+	return this.images.length;
+};
+
+
+//LazyImageProvider: Uses a list of URLs, loading images from the URLs on demand.
+//	Image elements are stored in a cache once loaded.
+LazyImageProvider.prototype = new ImageProvider();
+function LazyImageProvider(urls){
+	this.current_index = null;
+	this.urls = urls;
+}
+LazyImageProvider.prototype.hasNext = function(){
+	return this.current_index + 1 < this.urls.length;
+};
+LazyImageProvider.prototype.hasPrev = function(){
+	return (this.current_index - 1) >= 0 && this.urls.length > 0;
+};
+LazyImageProvider.prototype.getFirst = function(){
+	this.current_index = 0;
+	return this.getCurrentImage();
+};
+LazyImageProvider.prototype.getNext = function(){
+	this.current_index++;
+	if(this.current_index >= this.urls.length) this.current_index = 0;
+	return this.getCurrentImage();
+};
+LazyImageProvider.prototype.getPrev = function(){
+	this.current_index--;
+	if(this.current_index < 0) this.current_index = this.urls.length - 1;
+	return this.getCurrentImage();
+};
+LazyImageProvider.prototype.getCurrentImage = function(){
+	return this.getImageFromURL(this.urls[this.current_index]);
+};
+LazyImageProvider.prototype.getImageFromURL = function(url){
+	var image;
+	var fn = this.getImageFromURL;	
+	if(!('imageCache' in fn)) fn.imageCache = {};
+	if(url in fn.imageCache){
+		image = fn.imageCache[url];
+		console.log('loaded img from cache');
+	} else {
+		image = $('<img>')
+			.attr('src',url)
+			.hide()
+			.appendTo($(document.body))
+			.detach()
+			.show()
+		;
+		fn.imageCache[url]=image;
+		console.log('loaded img from url: ' + url + ' (added to cache)');
+	}
+	return image;
+};
+LazyImageProvider.prototype.getImageCount = function(){
+	return this.urls.length;
+};
