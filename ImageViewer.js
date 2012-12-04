@@ -5,9 +5,9 @@ function ImageViewer(container,imageProvider){
 	//core data
 	this.is_zoomed = false;
 	this.is_sliding = false;
-	this.slideTimeout;
+	this.slideTimeout = null;
 	this.is_open = false;
-	this.$imageContainer = container;
+	this.container = container;
 	this.imageProvider = imageProvider;
 }
 //settings (later moved to a public constructor)
@@ -22,41 +22,41 @@ ImageViewer.prototype.nextImage = function(){
 	if (!this.canNext()) return false;
 	var image = this.imageProvider.getNext();
 	this.viewImage(image);
-	this.$imageContainer.trigger('nextImage',image);
+	this.container.trigger('nextImage',image);
 }
 ImageViewer.prototype.prevImage = function(){
 	if (!this.canPrev()) return false;
 	var image = this.imageProvider.getPrev();
 	this.viewImage(image);
-	this.$imageContainer.trigger('prevImage',image);
+	this.container.trigger('prevImage',image);
 }
 ImageViewer.prototype.viewImage = function(image){
 	if(this.image) this.image.detach();
-	image.appendTo(this.$imageContainer);	
+	image.appendTo(this.container);	
 	this.image = image;
 	this.sizeToFit();
-	this.$imageContainer.trigger('imageLoaded',image);
+	this.container.trigger('imageLoaded',image);
 }
 ImageViewer.prototype.open = function(){
 	var image = this.imageProvider.getFirst();
 	this.viewImage(image);
 	this.is_open = true;
-	this.$imageContainer.trigger('open');
+	this.container.trigger('open');
 }
 ImageViewer.prototype.close = function(){
 	if(this.image) this.image.detach();
 	this.is_open = false;
-	this.$imageContainer.trigger('close');
+	this.container.trigger('close');
 }
 ImageViewer.prototype.startSlideShow = function(){
 	if(!this.canStartSlideShow()) return false;
 	console.log('show start!');
 	this.is_sliding = true;
 	var self = this;
-	slideTimeout = setInterval(function(){
+	this.slideTimeout = setInterval(function(){
 		self.slideNext();
 	}, this.slide_delay);
-	this.$imageContainer.trigger('slideShowStart');
+	this.container.trigger('slideShowStart');
 }
 ImageViewer.prototype.slideNext = function(){
 	if(!this.canSlide() || !this.canNext()) this.stopSlideShow(); 
@@ -67,7 +67,7 @@ ImageViewer.prototype.stopSlideShow = function(){
 	console.log('show stop!');
 	this.is_sliding = false;
 	clearTimeout(this.slideTimeout);
-	this.$imageContainer.trigger('slideShowStop');
+	this.container.trigger('slideShowStop');
 }
 ImageViewer.prototype.sizeToFit = function(){
 	min = function(){
@@ -77,9 +77,9 @@ ImageViewer.prototype.sizeToFit = function(){
 	}
 	var wh = $(window).height();
 	var ww = $(window).width();
-	console.log(this.$imageContainer);
-	var ch = this.$imageContainer.height();
-	var cw = this.$imageContainer.width();
+	//console.log(this.container);
+	var ch = this.container.height();
+	var cw = this.container.width();
 	//var w = min(ww,cw);
 	//var h = min(wh,ch);
 	//console.log('width',ww,cw,w);
@@ -102,19 +102,19 @@ ImageViewer.prototype.sizeToFit = function(){
 ImageViewer.prototype.zoom = function(){
 	if(!this.canZoom()) return false;
 	this.image.removeAttr('style');
-	this.$imageContainer.addClass('zoomed');
+	this.container.addClass('zoomed');
 	this.is_zoomed = true;
-	this.$imageContainer.trigger('zoom',this.image);
+	this.container.trigger('zoom',this.image);
 }
 ImageViewer.prototype.unzoom = function(){
 	if(!this.canUnzoom()) return false;
 	this.sizeToFit();
 	this.is_zoomed = false;
-	this.$imageContainer.trigger('unzoom',this.image);
+	this.container.trigger('unzoom',this.image);
 }
 ImageViewer.prototype.setWrapAround = function(bool){
 	this.wrap_mode = bool;
-	this.$imageContainer.trigger('wrapChanged');
+	this.container.trigger('wrapChanged');
 }
 //state queries
 ImageViewer.prototype.canWrap 			= function(){ return this.wrap_mode; }
