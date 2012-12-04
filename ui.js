@@ -39,15 +39,15 @@ $(function(){
 	});
 	$imageContainer
 		.on('imageLoaded',function(e,image){
-			console.log(image);
+			//console.log(image);
 			hud.text('Viewing ' + (viewer.currentIndex() + 1) + ' of ' + viewer.imageCount());
 		})
 		.on('open',function(){
-			console.log('open detected');
+			//console.log('open detected');
 		})
 		.on('stateChange',function(){
-			console.log('detected state change');
-			console.log(viewer.canOpen());
+			//console.log('detected state change');
+			//console.log(viewer.canOpen());
 			updateUIState();
 		})
 		.on('click','img',function(e){

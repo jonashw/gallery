@@ -9,9 +9,24 @@ function ImageViewer(container,imageProvider){
 	this.is_open = false;
 	this.container = container;
 	this.imageProvider = imageProvider;
+
+	this.optimizeContainerSize();	
+	var self = this;
+	$(window).on('resize',function(){
+		this.optimizeContainerSize();	
+		if(self.is_open) self.sizeToFit();
+	});
+	this.container.on('wrapChanged zoom unzoom slideShowStop slideShowStart open close imageLoaded', function(){
+		$imageContainer.trigger('stateChange');
+	});
 }
 //settings (later moved to a public constructor)
 //core methods (mutators)
+ImageViewer.prototype.optimizeContainerSize = function(){
+	this.container.height($(window).height());
+	this.containerWidth = this.container.width();
+	this.containerHeight = this.container.height(); 
+}
 ImageViewer.prototype.imageCount = function(){
 	return this.imageProvider.getImageCount();
 }
@@ -77,37 +92,40 @@ ImageViewer.prototype.sizeToFit = function(){
 	}
 	var wh = $(window).height();
 	var ww = $(window).width();
-	//console.log(this.container);
-	var ch = this.container.height();
-	var cw = this.container.width();
-	//var w = min(ww,cw);
-	//var h = min(wh,ch);
-	//console.log('width',ww,cw,w);
-	//console.log('height',wh,ch,h);
+	var ch = this.containerHeight;
+	var cw = this.containerWidth;
 	//scale the image to fit the available space
 	this.image.css({
-		'max-width': ww + 'px',
-		'max-height': wh + 'px'
+		'max-width': cw + 'px',
+		'max-height': ch + 'px'
 	});
 	//center the image horizontally and vertically
-	var ih = this.image.height()
-	var iw = this.image.width()
+	var iw = this.image.width();
+	var ih = this.image.height();
+	console.log('width',cw,iw);
 	this.image.css({
-		'position': 'absolute',
-		'left': (ww - iw) / 2 + 'px',
-		'top': (wh - ih) /2 + 'px'
+		'position': 'relative',
+		'left': (cw - iw) / 2 + 'px',
+		'top': (ch - ih) /2 + 'px'
 	});
 	this.is_zoomed = false;
 }
 ImageViewer.prototype.zoom = function(){
 	if(!this.canZoom()) return false;
 	this.image.removeAttr('style');
+	//this.center();
+	this.image.css({
+		'position':'absolute',
+		'top':0,
+		'left':0
+	});
 	this.container.addClass('zoomed');
 	this.is_zoomed = true;
 	this.container.trigger('zoom',this.image);
 }
 ImageViewer.prototype.unzoom = function(){
 	if(!this.canUnzoom()) return false;
+	this.image.removeAttr('style');
 	this.sizeToFit();
 	this.is_zoomed = false;
 	this.container.trigger('unzoom',this.image);

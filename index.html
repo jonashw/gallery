@@ -31,20 +31,11 @@
 		]);
 		//example UI stuff (should remain separate from core)
 		$(function(){
-			//initialize the image pool from the DOM.  hide all original images
+			//initialize
 			$imageContainer = $('#imageContainer');
 			domImageProvider = new DOMImageProvider($('img'));
 			viewer = new ImageViewer($imageContainer,lazyImageProvider);
 			//viewer = new ImageViewer($imageContainer,domImageProvider);
-
-			//window resize listener -> image best-fit
-			$(window).on('resize',function(){
-				viewer.sizeToFit();
-			});
-			var stateChangeEvents = 'wrapChanged zoom unzoom slideShowStop slideShowStart open close imageLoaded';
-			$imageContainer.on(stateChangeEvents, function(){
-				$imageContainer.trigger('stateChange');
-			});
 		});
 	</script>
 	<script type="text/javascript" src="ui.js"></script>
@@ -53,31 +44,39 @@
 	</style>
 </head>
 <body>
-	<div style="line-height:1.5em; padding:1em; margin:1em; text-align:center; width:150px; float:left; background:rgba(200,200,100,0.3); border-radius:4px; box-shadow:1px 1px #eee,inset 1px 1px #fff; border:1px solid #ddd">
-		<button id="open">Open viewer</button>
-		<br>
-		<button id="close">Close viewer</button>
-		<br>
-		<br>
-		<button id="prev">&#8592; Prev</button>
-		<button id="next">Next &#8594;</button>
-		<br>
-		<br>
-		Zoom
-		<button id="zoom">+</button>
-		<button id="unzoom">-</button>
-		<br>
-		<br>
-		<label><input type="checkbox" id="wrap"> Wrap mode</label>
-		<br>
-		<br>
-		<div id="hud"></div>
-		Slideshow
-		<br>
-		<button id="slideshow-start">Start</button>
-		<button id="slideshow-stop">Stop</button>
-	</div>
-	<div id="imageContainer"></div>
+	<table cellspacing="0" cellpadding="0" style="width:100%; height:100%;">
+		<tr>
+			<td style="width:20%; height:100%;vertical-align:top;">
+				<div style="line-height:1.5em; padding:1em; margin:1em; text-align:center;  background:rgba(200,200,100,0.3); border-radius:4px; box-shadow:1px 1px #eee,inset 1px 1px #fff; border:1px solid #ddd">
+					<button id="open">Open viewer</button>
+					<br>
+					<button id="close">Close viewer</button>
+					<br>
+					<br>
+					<button id="prev">&#8592; Prev</button>
+					<button id="next">Next &#8594;</button>
+					<br>
+					<br>
+					Zoom
+					<button id="zoom">+</button>
+					<button id="unzoom">-</button>
+					<br>
+					<br>
+					<label><input type="checkbox" id="wrap"> Wrap mode</label>
+					<br>
+					<br>
+					<div id="hud"></div>
+					Slideshow
+					<br>
+					<button id="slideshow-start">Start</button>
+					<button id="slideshow-stop">Stop</button>
+				</div>
+			</td>
+			<td style="width:80%; vertical-align:top;">
+				<div id="imageContainer"></div>
+			</td>
+		</tr>
+	</table>
 	<div id="images">
 		<img src="img/1.jpg" alt="" />
 		<img src="img/2.jpg" alt="" />
