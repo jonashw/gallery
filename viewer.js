@@ -13,32 +13,37 @@ function ImageViewer(){
 }
 //settings (later moved to a public constructor)
 //core methods (mutators)
+ImageViewer.prototype.setImages = function(images){
+	this.images = images;
+	this.imageProvider = new DOMImageProvider();
+	this.imageProvider.setImages(images);
+};
 ImageViewer.prototype.imageCount = function(){
-	return this.images.length;
+	return this.imageProvider.images.length;
 }
 ImageViewer.prototype.currentIndex = function(){
-	return this.current_index;
+	return this.imageProvider.current_index;
 }
 ImageViewer.prototype.nextImage = function(){
 	if (!this.canNext()) return false;
-	this.current_index++;
-	if(this.current_index >= this.images.length) this.current_index = 0;
+	this.imageProvider.current_index++;
+	if(this.imageProvider.current_index >= this.imageProvider.images.length) this.imageProvider.current_index = 0;
 	this.loadImageFromIndex();
-	this.$imageContainer.trigger('nextImage',this.current_image);
+	this.$imageContainer.trigger('nextImage',this.imageProvider.current_image);
 }
 ImageViewer.prototype.prevImage = function(){
 	if (!this.canPrev()) return false;
-	this.current_index--;
-	if(this.current_index < 0) this.current_index = this.images.length - 1;
+	this.imageProvider.current_index--;
+	if(this.imageProvider.current_index < 0) this.imageProvider.current_index = this.images.length - 1;
 	this.loadImageFromIndex();
-	this.$imageContainer.trigger('prevImage',this.current_image);
+	this.$imageContainer.trigger('prevImage',this.imageProvider.current_image);
 }
 ImageViewer.prototype.loadImageFromIndex = function(){
-	if(this.current_image) this.current_image.detach();
-	this.current_image = this.images[this.current_index];
-	this.current_image.appendTo(this.$imageContainer);	
+	if(this.imageProvider.current_image) this.imageProvider.current_image.detach();
+	this.imageProvider.current_image = this.imageProvider.images[this.imageProvider.current_index];
+	this.imageProvider.current_image.appendTo(this.$imageContainer);	
 	this.sizeToFit();
-	this.$imageContainer.trigger('imageLoaded',this.current_image);
+	this.$imageContainer.trigger('imageLoaded',this.imageProvider.current_image);
 }
 ImageViewer.prototype.open = function(){
 	this.loadImageFromIndex();
@@ -46,7 +51,7 @@ ImageViewer.prototype.open = function(){
 	this.$imageContainer.trigger('open');
 }
 ImageViewer.prototype.close = function(){
-	if(this.current_image) this.current_image.detach();
+	if(this.imageProvider.current_image) this.imageProvider.current_image.detach();
 	this.is_open = false;
 	this.$imageContainer.trigger('close');
 }
@@ -87,14 +92,14 @@ ImageViewer.prototype.sizeToFit = function(){
 	//console.log('width',ww,cw,w);
 	//console.log('height',wh,ch,h);
 	//scale the image to fit the available space
-	this.current_image.css({
+	this.imageProvider.current_image.css({
 		'max-width': ww + 'px',
 		'max-height': wh + 'px'
 	});
 	//center the image horizontally and vertically
-	var ih = this.current_image.height()
-	var iw = this.current_image.width()
-	this.current_image.css({
+	var ih = this.imageProvider.current_image.height()
+	var iw = this.imageProvider.current_image.width()
+	this.imageProvider.current_image.css({
 		'position': 'absolute',
 		'left': (ww - iw) / 2 + 'px',
 		'top': (wh - ih) /2 + 'px'
@@ -103,7 +108,7 @@ ImageViewer.prototype.sizeToFit = function(){
 }
 ImageViewer.prototype.zoom = function(){
 	if(!this.canZoom()) return false;
-	this.current_image.removeAttr('style');
+	this.imageProvider.current_image.removeAttr('style');
 	this.$imageContainer.addClass('zoomed');
 	this.is_zoomed = true;
 	this.$imageContainer.trigger('zoom',current_image);
@@ -144,13 +149,13 @@ ImageViewer.prototype.canNext = function(){
 	return this.is_open && (this.canWrap() || this.hasNext()); 
 }
 ImageViewer.prototype.hasNext = function(){
-	return this.current_index + 1 < this.images.length;
+	return this.imageProvider.current_index + 1 < this.imageProvider.images.length;
 }
 ImageViewer.prototype.canPrev = function(){
 	return this.is_open && (this.canWrap() || this.hasPrev()); 
 }
 ImageViewer.prototype.hasPrev = function(){
-	return (this.current_index - 1) >= 0 && this.images.length;
+	return (this.imageProvider.current_index - 1) >= 0 && this.imageProvider.images.length;
 }
 ImageViewer.prototype.canOpen = function(){
 	return !this.is_open;
