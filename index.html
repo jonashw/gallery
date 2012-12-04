@@ -3,11 +3,34 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Gallery</title>
-	<script type="text/javascript" src="../core/jQuery.js"></script>	
-	<script type="text/javascript" src="../core/JavaScript-load-image.js"></script>	
+	<script type="text/javascript" src="/universal/javascript/jQuery.js"></script>	
 	<script type="text/javascript" src="viewer.js"></script>
 	<script>
+		var viewer = new ImageViewer();
+		var $imageContainer;
 		//example UI stuff (should remain separate from core)
+		$(function(){
+			//initialize the image pool from the DOM.  hide all original images
+			$imageContainer = $('#imageContainer');
+			viewer.$imageContainer = $imageContainer;
+			var images = [];
+			$('img').each(function(){
+				var $i = $(this);
+				var image = new Image();
+				image.src = $i.attr('src');
+				images.push($(image));
+				$i.remove();
+			});
+			viewer.images = images;
+			//window resize listener -> image best-fit
+			$(window).on('resize',function(){
+				viewer.sizeToFit();
+			});
+			var stateChangeEvents = 'wrapChanged zoom unzoom slideShowStop slideShowStart open close imageLoaded';
+			$imageContainer.on(stateChangeEvents, function(){
+				$imageContainer.trigger('stateChange');
+			});
+		});
 		$(function(){
 			var openBtn = $("#open");
 			var closeBtn = $("#close");
@@ -21,47 +44,47 @@
 			var stop = $("#slideshow-stop");
 			updateUIState();
 			openBtn.on('click',function(){
-				open();
+				viewer.open();
 			});
 			closeBtn.on('click',function(){
-				close();
+				viewer.close();
 			});
 			prevBtn.on('click',function(){
-				prevImage();
+				viewer.prevImage();
 			});
 			nextBtn.on('click',function(){
-				nextImage();
+				viewer.nextImage();
 			});
 			zoomBtn.on('click',function(){
-				zoom();
+				viewer.zoom();
 			});
 			unzoomBtn.on('click',function(){
-				unzoom();
+				viewer.unzoom();
 			});
 			wrapCheck.on('change',function(){
-				setWrapAround($(this).is(':checked'));
+				viewer.setWrapAround($(this).is(':checked'));
 			});
 			start.on('click',function(){
-				startSlideShow();
+				viewer.startSlideShow();
 			});
 			stop.on('click',function(){
-				stopSlideShow();
+				viewer.stopSlideShow();
 			});
 			$imageContainer
 				.on('imageLoaded',function(e,image){
 					console.log(image);
-					hud.text('Viewing ' + (current_index + 1) + ' of ' + images.length);
+					hud.text('Viewing ' + (viewer.currentIndex() + 1) + ' of ' + viewer.imageCount());
 				})
 				.on('open',function(){
 					console.log('open detected');
 				})
 				.on('stateChange',function(){
 					console.log('detected state change');
-					console.log(canOpen());
+					console.log(viewer.canOpen());
 					updateUIState();
 				})
 				.on('click','img',function(e){
-					is_zoomed ? unzoom() : zoom();
+					viewer.canZoom() ? viewer.zoom() : viwer.unzoom();
 				})
 			;
 			//keyboard navigation listener (arrow keys)
@@ -69,25 +92,21 @@
 				console.log(e.which);
 				switch(e.which){
 					case 39://right
-						if(!canNext()) return;
-						nextImage();
+						viewer.nextImage();
 						e.preventDefault();
 						break;
 					case 37: //left
-						if(!canPrev()) return;
-						prevImage();
+						viewer.prevImage();
 						e.preventDefault();
 						break;
 					case 38: //up	
-						if(!canZoom()) return;
-						zoom();	
+						viewer.zoom();	
 						break;
 					case 40: //down
-						if(!canUnzoom()) return;
-						unzoom();	break;
+						viewer.unzoom();
+						break;
 					case 27: //esc
-						if(!canClose()) return;
-						close();
+						viewer.close();
 						break;
 				}
 			})
@@ -114,16 +133,16 @@
 				}
 			}
 			function updateUIState(){
-				setEnabledTo(closeBtn, canClose());
-				setEnabledTo(openBtn, canOpen());
-				setEnabledTo(zoomBtn, canZoom());
-				setEnabledTo(unzoomBtn, canUnzoom());
-				setEnabledTo(prevBtn, canPrev());
-				setEnabledTo(nextBtn, canNext());
-				setEnabledTo(start, canStartSlideShow());
-				setEnabledTo(stop, canStopSlideShow());
-				setShownTo(hud, isOpen());
-				setChecked(wrapCheck, canWrap());
+				setEnabledTo(closeBtn, viewer.canClose());
+				setEnabledTo(openBtn, viewer.canOpen());
+				setEnabledTo(zoomBtn, viewer.canZoom());
+				setEnabledTo(unzoomBtn, viewer.canUnzoom());
+				setEnabledTo(prevBtn, viewer.canPrev());
+				setEnabledTo(nextBtn, viewer.canNext());
+				setEnabledTo(start, viewer.canStartSlideShow());
+				setEnabledTo(stop, viewer.canStopSlideShow());
+				setShownTo(hud, viewer.isOpen());
+				setChecked(wrapCheck, viewer.canWrap());
 			}
 		});
 	</script>
