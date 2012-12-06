@@ -33,10 +33,10 @@ $(function(){
 		viewer.setWrapAround($(this).is(':checked'));
 	});
 	start.on('click',function(){
-		viewer.startSlideShow();
+		player.start();
 	});
 	stop.on('click',function(){
-		viewer.stopSlideShow();
+		player.stop();
 	});
 	$imageContainer
 		.on('imageLoaded',function(e,image){
@@ -46,7 +46,7 @@ $(function(){
 		.on('open',function(){
 			//console.log('open detected');
 		})
-		.on('stateChange',function(){
+		.on('stateChange slideShowStart slideShowStop',function(){
 			//console.log('detected state change');
 			//console.log(viewer.canOpen());
 			updateUIState();
@@ -114,10 +114,10 @@ $(function(){
 		setEnabledTo(openBtn, viewer.canOpen());
 		setEnabledTo(zoomBtn, viewer.canZoom());
 		setEnabledTo(unzoomBtn, viewer.canUnzoom());
-		setEnabledTo(prevBtn, viewer.canPrev());
-		setEnabledTo(nextBtn, viewer.canNext());
-		setEnabledTo(start, viewer.canStartSlideShow());
-		setEnabledTo(stop, viewer.canStopSlideShow());
+		setEnabledTo(prevBtn, viewer.canPrev() && !player.isPlaying());
+		setEnabledTo(nextBtn, viewer.canNext() && !player.isPlaying());
+		setEnabledTo(start, player.canStart());
+		setEnabledTo(stop, player.canStop() && player.isPlaying());
 		setShownTo(hud, viewer.isOpen());
 		setChecked(wrapCheck, viewer.canWrap());
 	}

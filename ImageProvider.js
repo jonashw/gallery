@@ -30,15 +30,15 @@ DOMImageProvider.prototype.getFirst = function(){
 	this.current_index = 0;
 	return this.images[this.current_index];
 };
-DOMImageProvider.prototype.getNext = function(){
+DOMImageProvider.prototype.getNext = function(callback){
 	this.current_index++;
 	if(this.current_index >= this.images.length) this.current_index = 0;
-	return this.images[this.current_index];
+	callback(this.images[this.current_index]);
 };
-DOMImageProvider.prototype.getPrev = function(){
+DOMImageProvider.prototype.getPrev = function(callback){
 	this.current_index--;
 	if(this.current_index < 0) this.current_index = this.images.length - 1;
-	return this.images[this.current_index];
+	callback(this.images[this.current_index]);
 };
 DOMImageProvider.prototype.getImageCount = function(){
 	return this.images.length;
@@ -58,30 +58,30 @@ LazyImageProvider.prototype.hasNext = function(){
 LazyImageProvider.prototype.hasPrev = function(){
 	return (this.current_index - 1) >= 0 && this.urls.length > 0;
 };
-LazyImageProvider.prototype.getFirst = function(){
+LazyImageProvider.prototype.getFirst = function(callback){
 	this.current_index = 0;
-	return this.getCurrentImage();
+	return this.getCurrentImage(callback);
 };
-LazyImageProvider.prototype.getNext = function(){
+LazyImageProvider.prototype.getNext = function(callback){
 	this.current_index++;
 	if(this.current_index >= this.urls.length) this.current_index = 0;
-	return this.getCurrentImage();
+	this.getCurrentImage(callback);
 };
-LazyImageProvider.prototype.getPrev = function(){
+LazyImageProvider.prototype.getPrev = function(callback){
 	this.current_index--;
 	if(this.current_index < 0) this.current_index = this.urls.length - 1;
-	return this.getCurrentImage();
+	this.getCurrentImage(callback);
 };
-LazyImageProvider.prototype.getCurrentImage = function(){
-	return this.getImageFromURL(this.urls[this.current_index]);
+LazyImageProvider.prototype.getCurrentImage = function(callback){
+	return this.getImageFromURL(this.urls[this.current_index],callback);
 };
-LazyImageProvider.prototype.getImageFromURL = function(url){
+LazyImageProvider.prototype.getImageFromURL = function(url,callback){
 	var image;
 	var fn = this.getImageFromURL;	
 	if(!('imageCache' in fn)) fn.imageCache = {};
 	if(url in fn.imageCache){
 		image = fn.imageCache[url];
-		console.log('loaded img from cache');
+		//console.log('loaded img from cache');
 	} else {
 		image = $('<img>')
 			.attr('src',url)
@@ -91,9 +91,9 @@ LazyImageProvider.prototype.getImageFromURL = function(url){
 			.show()
 		;
 		fn.imageCache[url]=image;
-		console.log('loaded img from url: ' + url + ' (added to cache)');
+		//console.log('loaded img from url: ' + url + ' (added to cache)');
 	}
-	return image;
+	callback(image);
 };
 LazyImageProvider.prototype.getImageCount = function(){
 	return this.urls.length;

@@ -5,10 +5,12 @@
 	<title>Gallery</title>
 	<script type="text/javascript" src="../core/jQuery.js"></script>	
 	<script type="text/javascript" src="ImageViewer.js"></script>
+	<script type="text/javascript" src="ImageViewerPlayer.js"></script>
 	<script type="text/javascript" src="ImageProvider.js"></script>
 	<script>
 		var domImageProvider;
 		var viewer;
+		var player;
 		var $imageContainer;
 		var lazyImageProvider = new LazyImageProvider([
 			"img/1.jpg",
@@ -35,6 +37,7 @@
 			$imageContainer = $('#imageContainer');
 			domImageProvider = new DOMImageProvider($('img'));
 			viewer = new ImageViewer($imageContainer,lazyImageProvider);
+			player = new ImageViewerPlayer(viewer);
 			viewer.open();
 			//keyboard navigation listener (arrow keys)
 			$(document).on('keydown',function(e){
@@ -68,8 +71,8 @@
 			var next = $("#next").on('click',function(){viewer.nextImage()});
 			var zoom = $("#zoom").on('click',function(){viewer.zoom()});
 			var unzoom = $("#unzoom").on('click',function(){viewer.unzoom()});
-			var slideshowStart = $("#slideshow-start").on('click',function(){viewer.startSlideShow()});
-			var slideshowStop = $("#slideshow-stop").on('click',function(){viewer.stopSlideShow()});
+			var slideshowStart = $("#slideshow-start").on('click',function(){player.start()});
+			var slideshowStop = $("#slideshow-stop").on('click',function(){player.stop()});
 			var close = $("#close").on('click',function(){viewer.close()});
 			var open = $("#open").on('click',function(){viewer.open()});
 			var comments = $("#comments").on('click',function(){setState(commentsState);});
@@ -106,17 +109,17 @@
 			function updateUIState(){
 				setShownTo(close, viewer.canClose());
 				setShownTo(open, viewer.canOpen());
-				setShownTo(slideshowStart, viewer.canStartSlideShow());
-				setShownTo(slideshowStop, viewer.canStopSlideShow());
+				setShownTo(slideshowStart, player.canStart());
+				setShownTo(slideshowStop, player.canStop());
 				setEnabledTo(zoom, viewer.canZoom());
 				setEnabledTo(unzoom, viewer.canUnzoom());
-				setShownTo(prev, viewer.canPrev() && !viewer.isZoomed(),true);
-				setShownTo(next, viewer.canNext() && !viewer.isZoomed(),true);
-				setShownTo(bottombar, !viewer.isSlideShowRunning() && viewer.isOpen(),true);
+				setShownTo(prev, viewer.canPrev() && !viewer.isZoomed() && !player.isPlaying(),true);
+				setShownTo(next, viewer.canNext() && !viewer.isZoomed() && !player.isPlaying(),true);
+				setShownTo(bottombar, !player.isPlaying() && viewer.isOpen(),true);
 				setShownTo(topbar, !viewer.isZoomed(),true);
 			}
 			updateUIState();
-			$imageContainer.on('stateChange',function(){
+			$imageContainer.on('stateChange slideShowStart slideShowStop',function(){
 				updateUIState();
 			});
 			//ui state

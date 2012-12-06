@@ -6,10 +6,12 @@
 	<script type="text/javascript" src="../core/jQuery.js"></script>	
 	<script type="text/javascript" src="ImageViewer.js"></script>
 	<script type="text/javascript" src="ImageProvider.js"></script>
+	<script type="text/javascript" src="ImageViewerPlayer.js"></script>
 	<script>
 		var domImageProvider;
-		var viewer;
 		var $imageContainer;
+		var player;
+		var viewer;
 		var lazyImageProvider = new LazyImageProvider([
 			"img/1.jpg",
 			"img/2.jpg",
@@ -35,6 +37,7 @@
 			$imageContainer = $('#imageContainer');
 			domImageProvider = new DOMImageProvider($('img'));
 			viewer = new ImageViewer($imageContainer,lazyImageProvider);
+			player = new ImageViewerPlayer(viewer);
 			//viewer = new ImageViewer($imageContainer,domImageProvider);
 		});
 	</script>
