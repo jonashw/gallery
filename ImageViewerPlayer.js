@@ -1,5 +1,4 @@
 function ImageViewerPlayer(imageViewer,imageProvider){
-	this.observable = new Observable();
 	this.imageViewer = imageViewer;
 	this.imageProvider = imageProvider;
 	this.slide_delay = 300;
@@ -10,14 +9,11 @@ function ImageViewerPlayer(imageViewer,imageProvider){
 	this.imageViewer.on('close',function(){
 		self.stop();//stop the show when the viewer closes
 	});
+	new Observable(this);
 	this.on('slideshowStart slideshowStop wrapChanged', function(){
-		self.observable.notifyObservers('stateChanged');
+		self.notifyObservers('stateChanged');
 		console.log('statechanged');
 	});
-}
-ImageViewerPlayer.prototype.on = function(event_name, callback){
-	this.observable.addObserver(event_name, callback);
-	return this;
 }
 ImageViewerPlayer.prototype.next = function(){
 	if(!this.canNext()){
@@ -27,7 +23,7 @@ ImageViewerPlayer.prototype.next = function(){
 	var self = this;
 	this.imageProvider.getNext(function(image){
 		self.imageViewer.viewImage(image);
-		self.observable.notifyObservers('nextImage',image);
+		self.notifyObservers('nextImage',image);
 	});
 }
 ImageViewerPlayer.prototype.prev = function(){
@@ -38,7 +34,7 @@ ImageViewerPlayer.prototype.prev = function(){
 	var self = this;
 	this.imageProvider.getPrev(function(image){
 		self.imageViewer.viewImage(image);
-		self.observable.notifyObservers('prevImage',image);
+		self.notifyObservers('prevImage',image);
 	});
 }
 ImageViewerPlayer.prototype.currentIndex = function(){
@@ -55,7 +51,7 @@ ImageViewerPlayer.prototype.start = function(){
 			slideLoop();
 		}, self.slide_delay);
 	})();
-	this.observable.notifyObservers('slideshowStart');
+	this.notifyObservers('slideshowStart');
 }
 ImageViewerPlayer.prototype.slide = function(){
 	if(!this.canSlide()) return false;
@@ -66,11 +62,11 @@ ImageViewerPlayer.prototype.stop = function(){
 	//console.log('show stop!');
 	this.is_sliding = false;
 	clearTimeout(this.timeout);
-	this.observable.notifyObservers('slideshowStop');
+	this.notifyObservers('slideshowStop');
 }
 ImageViewerPlayer.prototype.setWrap = function(bool){
 	this.wrap_mode = bool;
-	this.observable.notifyObservers('wrapChanged');
+	this.notifyObservers('wrapChanged');
 }
 ImageViewerPlayer.prototype.imageCount = function(){
 	return this.imageProvider.getImageCount();

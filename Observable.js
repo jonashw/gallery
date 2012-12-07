@@ -1,5 +1,13 @@
-function Observable(){
+function Observable(obj){
+	var self = this;
 	this.observers = {};
+	obj.on = function(){
+		self.addObserver.apply(self, arguments);	
+		return obj;
+	}
+	obj.notifyObservers = function(){
+		self.notifyObservers.apply(self, arguments);
+	}
 }
 Observable.prototype.addObserver = function(event_names, callback){
 	var event_names = event_names.split(' ');//one listener can listen for several events
