@@ -27,8 +27,12 @@ ImageViewer.prototype.viewImage = function(image){
 	if(this.image) this.image.detach();
 	image.appendTo(this.container);	
 	this.image = image;
-	this.sizeToFit();
-	if(this.canUnzoom()) this.unzoom();
+	if(!this.isZoomed()){
+		this.sizeToFit();
+ 	} else {
+		this.sizeFull();
+	}
+	//if(this.canUnzoom()) this.unzoom();
 	this.container.trigger('imageLoaded',image);
 }
 ImageViewer.prototype.open = function(){
@@ -57,11 +61,14 @@ ImageViewer.prototype.sizeToFit = function(){
 	var ch = this.containerHeight;
 	var cw = this.containerWidth;
 	//scale the image to fit the available space
-	this.image.css({
-		'position': 'relative',
-		'max-width': cw + 'px',
-		'max-height': ch + 'px'
-	});
+	this.image
+		.removeAttr('style')
+		.css({
+			'position': 'relative',
+			'max-width': cw + 'px',
+			'max-height': ch + 'px'
+		})
+	;
 	//center the image horizontally and vertically
 	var iw = this.image.width();
 	var ih = this.image.height();
@@ -74,6 +81,11 @@ ImageViewer.prototype.sizeToFit = function(){
 }
 ImageViewer.prototype.zoom = function(){
 	if(!this.canZoom()) return false;
+	this.sizeFull();
+	this.is_zoomed = true;
+	this.container.trigger('zoom',this.image);
+}
+ImageViewer.prototype.sizeFull = function(){
 	this.image
 		.removeAttr('style')
 		.css({
@@ -82,8 +94,6 @@ ImageViewer.prototype.zoom = function(){
 			'left':0
 		})
 	;
-	this.is_zoomed = true;
-	this.container.trigger('zoom',this.image);
 }
 ImageViewer.prototype.unzoom = function(){
 	if(!this.canUnzoom()) return false;
