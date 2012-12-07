@@ -12,32 +12,33 @@
 		var $imageContainer;
 		var player;
 		var viewer;
-		var lazyImageProvider = new LazyImageProvider([
-			"img/1.jpg",
-			"img/2.jpg",
-			"img/3.jpg",
-			"img/4.jpg",
-			"img/5.jpg",
-			"img/6.jpg",
-			"img/7.jpg",
-			"img/8.jpg",
-			"img/9.jpg",
-			"img/10.jpg",
-			"img/11.jpg",
-			"img/12.jpg",
-			"img/13.jpg",
-			"img/14.jpg",
-			"img/15.jpg",
-			"img/16.jpg",
-			"img/17.jpg"
-		]);
+		var lazyImageProvider;
 		//example UI stuff (should remain separate from core)
 		$(function(){
 			//initialize
+			lazyImageProvider = new LazyImageProvider([
+				"img/1.jpg",
+				"img/2.jpg",
+				"img/3.jpg",
+				"img/4.jpg",
+				"img/5.jpg",
+				"img/6.jpg",
+				"img/7.jpg",
+				"img/8.jpg",
+				"img/9.jpg",
+				"img/10.jpg",
+				"img/11.jpg",
+				"img/12.jpg",
+				"img/13.jpg",
+				"img/14.jpg",
+				"img/15.jpg",
+				"img/16.jpg",
+				"img/17.jpg"
+			]);
 			$imageContainer = $('#imageContainer');
 			domImageProvider = new DOMImageProvider($('img'));
 			viewer = new ImageViewer($imageContainer,lazyImageProvider);
-			player = new ImageViewerPlayer(viewer);
+			player = new ImageViewerPlayer(viewer,lazyImageProvider);
 			//viewer = new ImageViewer($imageContainer,domImageProvider);
 		});
 	</script>

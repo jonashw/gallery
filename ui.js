@@ -18,10 +18,10 @@ $(function(){
 		viewer.close();
 	});
 	prevBtn.on('click',function(){
-		viewer.prevImage();
+		player.prev();
 	});
 	nextBtn.on('click',function(){
-		viewer.nextImage();
+		player.next();
 	});
 	zoomBtn.on('click',function(){
 		viewer.zoom();
@@ -30,7 +30,7 @@ $(function(){
 		viewer.unzoom();
 	});
 	wrapCheck.on('change',function(){
-		viewer.setWrapAround($(this).is(':checked'));
+		player.setWrap($(this).is(':checked'));
 	});
 	start.on('click',function(){
 		player.start();
@@ -41,7 +41,7 @@ $(function(){
 	$imageContainer
 		.on('imageLoaded',function(e,image){
 			//console.log(image);
-			hud.text('Viewing ' + (viewer.currentIndex() + 1) + ' of ' + viewer.imageCount());
+			hud.text('Viewing ' + (player.currentIndex() + 1) + ' of ' + player.imageCount());
 		})
 		.on('open',function(){
 			//console.log('open detected');
@@ -66,11 +66,11 @@ $(function(){
 		console.log(e.which);
 		switch(e.which){
 			case 39://right
-				viewer.nextImage();
+				player.next();
 				e.preventDefault();
 				break;
 			case 37: //left
-				viewer.prevImage();
+				player.prev();
 				e.preventDefault();
 				break;
 			case 38: //up	
@@ -114,11 +114,11 @@ $(function(){
 		setEnabledTo(openBtn, viewer.canOpen());
 		setEnabledTo(zoomBtn, viewer.canZoom());
 		setEnabledTo(unzoomBtn, viewer.canUnzoom());
-		setEnabledTo(prevBtn, viewer.canPrev() && !player.isPlaying());
-		setEnabledTo(nextBtn, viewer.canNext() && !player.isPlaying());
+		setEnabledTo(prevBtn, player.canPrev() && !player.isPlaying());
+		setEnabledTo(nextBtn, player.canNext() && !player.isPlaying());
 		setEnabledTo(start, player.canStart());
 		setEnabledTo(stop, player.canStop() && player.isPlaying());
 		setShownTo(hud, viewer.isOpen());
-		setChecked(wrapCheck, viewer.canWrap());
+		setChecked(wrapCheck, player.canWrap());
 	}
 });

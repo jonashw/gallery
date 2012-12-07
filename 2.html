@@ -37,17 +37,17 @@
 			$imageContainer = $('#imageContainer');
 			domImageProvider = new DOMImageProvider($('img'));
 			viewer = new ImageViewer($imageContainer,lazyImageProvider);
-			player = new ImageViewerPlayer(viewer);
+			player = new ImageViewerPlayer(viewer,lazyImageProvider);
 			viewer.open();
 			//keyboard navigation listener (arrow keys)
 			$(document).on('keydown',function(e){
 				switch(e.which){
 					case 39://right
-						viewer.nextImage();
+						player.next();
 						e.preventDefault();
 						break;
 					case 37: //left
-						viewer.prevImage();
+						player.prev();
 						e.preventDefault();
 						break;
 					case 38: //up	
@@ -67,8 +67,8 @@
 						break;
 				}
 			});
-			var prev = $("#prev").on('click',function(){viewer.prevImage()});
-			var next = $("#next").on('click',function(){viewer.nextImage()});
+			var prev = $("#prev").on('click',function(){player.prev()});
+			var next = $("#next").on('click',function(){player.next()});
 			var zoom = $("#zoom").on('click',function(){viewer.zoom()});
 			var unzoom = $("#unzoom").on('click',function(){viewer.unzoom()});
 			var slideshowStart = $("#slideshow-start").on('click',function(){player.start()});
@@ -113,8 +113,8 @@
 				setShownTo(slideshowStop, player.canStop());
 				setEnabledTo(zoom, viewer.canZoom());
 				setEnabledTo(unzoom, viewer.canUnzoom());
-				setShownTo(prev, viewer.canPrev() && !viewer.isZoomed() && !player.isPlaying(),true);
-				setShownTo(next, viewer.canNext() && !viewer.isZoomed() && !player.isPlaying(),true);
+				setShownTo(prev, player.canPrev() && !viewer.isZoomed() && !player.isPlaying(),true);
+				setShownTo(next, player.canNext() && !viewer.isZoomed() && !player.isPlaying(),true);
 				setShownTo(bottombar, !player.isPlaying() && viewer.isOpen(),true);
 				setShownTo(topbar, !viewer.isZoomed(),true);
 			}

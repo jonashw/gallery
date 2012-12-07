@@ -1,6 +1,5 @@
 function ImageViewer(container,imageProvider){
 	this.image;
-	this.wrap_mode = true;
 	//core data
 	this.is_zoomed = false;
 	this.is_open = false;
@@ -23,28 +22,6 @@ ImageViewer.prototype.optimizeContainerSize = function(){
 	this.container.height($(window).height());
 	this.containerWidth = this.container.width();
 	this.containerHeight = this.container.height(); 
-}
-ImageViewer.prototype.imageCount = function(){
-	return this.imageProvider.getImageCount();
-}
-ImageViewer.prototype.currentIndex = function(){
-	return this.imageProvider.getCurrentIndex();
-}
-ImageViewer.prototype.nextImage = function(){
-	if (!this.canNext()) return false;
-	var self = this;
-	this.imageProvider.getNext(function(image){
-		self.viewImage(image);
-		self.container.trigger('nextImage',image);
-	});
-}
-ImageViewer.prototype.prevImage = function(){
-	if (!this.canPrev()) return false;
-	var self = this;
-	this.imageProvider.getPrev(function(image){
-		self.viewImage(image);
-		self.container.trigger('prevImage',image);
-	});
 }
 ImageViewer.prototype.viewImage = function(image){
 	if(this.image) this.image.detach();
@@ -115,19 +92,10 @@ ImageViewer.prototype.unzoom = function(){
 	this.is_zoomed = false;
 	this.container.trigger('unzoom',this.image);
 }
-ImageViewer.prototype.setWrapAround = function(bool){
-	this.wrap_mode = bool;
-	this.container.trigger('wrapChanged');
-}
 //state queries
-ImageViewer.prototype.canWrap 	= function(){ return this.wrap_mode; };
 ImageViewer.prototype.canOpen 	= function(){ return !this.is_open; };
 ImageViewer.prototype.canClose 	= function(){ return this.is_open; };
 ImageViewer.prototype.isOpen 	= function(){ return this.is_open; };
 ImageViewer.prototype.isZoomed	= function(){ return this.is_zoomed; };
 ImageViewer.prototype.canZoom 	= function(){ return this.is_open && !this.is_zoomed; };
 ImageViewer.prototype.canUnzoom = function(){ return this.is_open && this.is_zoomed; };
-ImageViewer.prototype.canPrev 	= function(){ return this.is_open && this.hasPrev(); };
-ImageViewer.prototype.canNext 	= function(){ return this.is_open && this.hasNext(); };
-ImageViewer.prototype.hasPrev 	= function(){ return this.imageProvider.hasPrev() || this.canWrap(); };
-ImageViewer.prototype.hasNext 	= function(){ return this.imageProvider.hasNext() || this.canWrap(); };
