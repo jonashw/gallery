@@ -38,27 +38,27 @@ $(function(){
 	stop.on('click',function(){
 		player.stop();
 	});
-	$imageContainer
+	$imageContainer.on('click','img',function(e){
+		viewer.canZoom() ? viewer.zoom() : viewer.unzoom();
+	});
+	viewer
+		.on('stateChange',function(){
+			updateUIState();
+		})
 		.on('imageLoaded',function(e,image){
 			//console.log(image);
 			hud.text('Viewing ' + (player.currentIndex() + 1) + ' of ' + player.imageCount());
-		})
-		.on('open',function(){
-			//console.log('open detected');
-		})
-		.on('stateChange slideShowStart slideShowStop',function(){
-			//console.log('detected state change');
-			//console.log(viewer.canOpen());
-			updateUIState();
-		})
-		.on('click','img',function(e){
-			viewer.canZoom() ? viewer.zoom() : viewer.unzoom();
 		})
 		.on('zoom',function(){
 			controls.hide();
 		})
 		.on('unzoom',function(){
 			controls.show();
+		})
+	;
+	player
+		.on('stateChanged',function(){
+			updateUIState();
 		})
 	;
 	//keyboard navigation listener (arrow keys)
@@ -117,7 +117,7 @@ $(function(){
 		setEnabledTo(prevBtn, player.canPrev() && !player.isPlaying());
 		setEnabledTo(nextBtn, player.canNext() && !player.isPlaying());
 		setEnabledTo(start, player.canStart());
-		setEnabledTo(stop, player.canStop() && player.isPlaying());
+		setEnabledTo(stop, player.canStop());
 		setShownTo(hud, viewer.isOpen());
 		setChecked(wrapCheck, player.canWrap());
 	}

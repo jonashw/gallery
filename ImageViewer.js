@@ -5,6 +5,7 @@ function ImageViewer(container,imageProvider){
 	this.is_open = false;
 	this.container = container;
 	this.imageProvider = imageProvider;
+	this.observable = new Observable();
 
 	this.optimizeContainerSize();	
 	var self = this;
@@ -12,12 +13,16 @@ function ImageViewer(container,imageProvider){
 		self.optimizeContainerSize();	
 		if(self.is_open) self.sizeToFit();
 	});
-	this.container.on('wrapChanged zoom unzoom open close imageLoaded', function(){
-		$imageContainer.trigger('stateChange');
+	this.on('zoom unzoom open close imageLoaded', function(){
+		self.observable.notifyObservers('stateChange');
 	});
 }
 //settings (later moved to a public constructor)
 //core methods (mutators)
+ImageViewer.prototype.on = function(event_name, callback){
+	this.observable.addObserver(event_name, callback);
+	return this;
+}
 ImageViewer.prototype.optimizeContainerSize = function(){
 	this.container.height($(window).height());
 	this.containerWidth = this.container.width();
@@ -33,7 +38,7 @@ ImageViewer.prototype.viewImage = function(image){
 		this.sizeFull();
 	}
 	//if(this.canUnzoom()) this.unzoom();
-	this.container.trigger('imageLoaded',image);
+	this.observable.notifyObservers('imageLoaded',image);
 }
 ImageViewer.prototype.open = function(){
 	if(!this.canOpen()) return false;
@@ -41,14 +46,14 @@ ImageViewer.prototype.open = function(){
 	this.imageProvider.getFirst(function(image){
 		self.viewImage(image);
 		self.is_open = true;
-		self.container.trigger('open');
+		self.observable.notifyObservers('open');
 	});
 }
 ImageViewer.prototype.close = function(){
 	if(!this.canClose()) return false;
 	if(this.image) this.image.detach();
 	this.is_open = false;
-	this.container.trigger('close');
+	this.observable.notifyObservers('close');
 }
 ImageViewer.prototype.sizeToFit = function(){
 	min = function(){
@@ -83,7 +88,7 @@ ImageViewer.prototype.zoom = function(){
 	if(!this.canZoom()) return false;
 	this.sizeFull();
 	this.is_zoomed = true;
-	this.container.trigger('zoom',this.image);
+	this.observable.notifyObservers('zoom',this.image);
 }
 ImageViewer.prototype.sizeFull = function(){
 	this.image
@@ -100,7 +105,7 @@ ImageViewer.prototype.unzoom = function(){
 	this.image.removeAttr('style');
 	this.sizeToFit();
 	this.is_zoomed = false;
-	this.container.trigger('unzoom',this.image);
+	this.observable.notifyObservers('unzoom',this.image);
 }
 //state queries
 ImageViewer.prototype.canOpen 	= function(){ return !this.is_open; };

@@ -1,4 +1,5 @@
 function ImageViewerPlayer(imageViewer,imageProvider){
+	this.observable = new Observable();
 	this.imageViewer = imageViewer;
 	this.imageProvider = imageProvider;
 	this.slide_delay = 300;
@@ -6,9 +7,17 @@ function ImageViewerPlayer(imageViewer,imageProvider){
 	this.is_sliding = false;
 	this.timeout = false;
 	var self = this;
-	this.imageViewer.container.on('close',function(){//stop the show when the viewer closes
-		self.stop();
+	this.imageViewer.on('close',function(){
+		self.stop();//stop the show when the viewer closes
 	});
+	this.on('slideshowStart slideshowStop wrapChanged', function(){
+		self.observable.notifyObservers('stateChanged');
+		console.log('statechanged');
+	});
+}
+ImageViewerPlayer.prototype.on = function(event_name, callback){
+	this.observable.addObserver(event_name, callback);
+	return this;
 }
 ImageViewerPlayer.prototype.next = function(){
 	if(!this.canNext()){
@@ -18,7 +27,7 @@ ImageViewerPlayer.prototype.next = function(){
 	var self = this;
 	this.imageProvider.getNext(function(image){
 		self.imageViewer.viewImage(image);
-		self.imageViewer.container.trigger('nextImage',image);
+		self.observable.notifyObservers('nextImage',image);
 	});
 }
 ImageViewerPlayer.prototype.prev = function(){
@@ -29,7 +38,7 @@ ImageViewerPlayer.prototype.prev = function(){
 	var self = this;
 	this.imageProvider.getPrev(function(image){
 		self.imageViewer.viewImage(image);
-		self.imageViewer.container.trigger('prevImage',image);
+		self.observable.notifyObservers('prevImage',image);
 	});
 }
 ImageViewerPlayer.prototype.currentIndex = function(){
@@ -46,7 +55,7 @@ ImageViewerPlayer.prototype.start = function(){
 			slideLoop();
 		}, self.slide_delay);
 	})();
-	this.imageViewer.container.trigger('slideShowStart');
+	this.observable.notifyObservers('slideshowStart');
 }
 ImageViewerPlayer.prototype.slide = function(){
 	if(!this.canSlide()) return false;
@@ -57,11 +66,11 @@ ImageViewerPlayer.prototype.stop = function(){
 	//console.log('show stop!');
 	this.is_sliding = false;
 	clearTimeout(this.timeout);
-	this.imageViewer.container.trigger('slideShowStop');
+	this.observable.notifyObservers('slideshowStop');
 }
 ImageViewerPlayer.prototype.setWrap = function(bool){
 	this.wrap_mode = bool;
-	this.imageViewer.container.trigger('wrapChanged');
+	this.observable.notifyObservers('wrapChanged');
 }
 ImageViewerPlayer.prototype.imageCount = function(){
 	return this.imageProvider.getImageCount();
