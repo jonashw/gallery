@@ -12,8 +12,12 @@ for a solo view. I will also need a way to indicate how the viewer is to get mor
 as loading all grouped photos on the same page every time is simply not an option (I need photo groups to be browsed from a news feed, for instance). I will also need to be able to load arbitrary content alongside an image.. I'm thinking comments and links, facebook style.
 
 All screen sizes
+
 Configurable UI
+
 Strong API
+
 Browsing groups, both local and remote
+
 Slideshow
 
